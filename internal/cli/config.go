@@ -5,8 +5,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/velo4705/polyglot/internal/config"
 	"github.com/spf13/cobra"
+	"github.com/velo4705/polyglot/internal/config"
 	yaml "gopkg.in/yaml.v3"
 )
 

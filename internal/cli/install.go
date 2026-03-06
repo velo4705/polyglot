@@ -3,8 +3,8 @@ package cli
 import (
 	"fmt"
 
-	"github.com/velo4705/polyglot/internal/installer"
 	"github.com/spf13/cobra"
+	"github.com/velo4705/polyglot/internal/installer"
 )
 
 var installCmd = &cobra.Command{

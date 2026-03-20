@@ -7,7 +7,7 @@
 
 A universal compiler and interpreter wrapper that detects programming languages by file extension and executes them with the appropriate toolchain.
 
-**🎉 Version 1.0.1 - Production Ready with Auto-Update!**
+**🎉 Version 1.1.0 - Improved UX!**
 
 ## ✨ Features
 

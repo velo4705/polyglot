@@ -4,28 +4,34 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/velo4705/polyglot/internal/config"
 	"github.com/velo4705/polyglot/internal/detector"
+	advisorpkg "github.com/velo4705/polyglot/internal/errors"
 	"github.com/velo4705/polyglot/internal/executor"
 	"github.com/velo4705/polyglot/internal/installer"
 	"github.com/velo4705/polyglot/internal/language"
+	"github.com/velo4705/polyglot/internal/output"
+	stdinpkg "github.com/velo4705/polyglot/internal/stdin"
 	"github.com/velo4705/polyglot/internal/ui"
 	"github.com/velo4705/polyglot/pkg/types"
 )
 
 var (
-	verbose bool
-	quiet   bool
-	args    []string
-	dryRun  bool
+	verbose    bool
+	quiet      bool
+	args       []string
+	dryRun     bool
+	jsonOutput bool
+	lang       string
 )
 
 var runCmd = &cobra.Command{
-	Use:   "run <file>",
+	Use:   "run [file]",
 	Short: "Detect and run a source file",
-	Args:  cobra.ExactArgs(1),
+	Args:  cobra.RangeArgs(0, 1),
 	RunE:  runFile,
 }
 
@@ -34,61 +40,140 @@ func init() {
 	runCmd.Flags().BoolVarP(&quiet, "quiet", "q", false, "Quiet mode (suppress polyglot messages)")
 	runCmd.Flags().StringSliceVar(&args, "args", []string{}, "Arguments to pass to the program")
 	runCmd.Flags().BoolVar(&dryRun, "dry-run", false, "Show what would be executed without running")
+	runCmd.Flags().BoolVar(&jsonOutput, "json", false, "Output results as JSON")
+	runCmd.Flags().StringVar(&lang, "lang", "", "Language name (required when reading from stdin)")
 }
 
 func runFile(cmd *cobra.Command, cmdArgs []string) error {
-	filename := cmdArgs[0]
+	var filename string
+
+	// Detect stdin mode (no file argument provided)
+	if len(cmdArgs) == 0 {
+		if lang == "" {
+			fmt.Fprintln(os.Stderr, "stdin requires --lang flag (e.g. --lang Python)")
+			return fmt.Errorf("stdin requires --lang flag")
+		}
+		tempPath, err := stdinpkg.ReadToTempFile(lang)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, advisorpkg.Generic("failed to read stdin", err))
+			return err
+		}
+		defer os.Remove(tempPath)
+		filename = tempPath
+	} else {
+		filename = cmdArgs[0]
+	}
+
+	// When --json is active, suppress normal ui output
+	if jsonOutput {
+		quiet = true
+	}
 
 	// Check if file exists
 	if _, err := os.Stat(filename); os.IsNotExist(err) {
-		ui.Error("File not found: %s", filename)
-		return fmt.Errorf("file not found: %s", filename)
+		msg := advisorpkg.FileNotFound(filename)
+		if jsonOutput {
+			result := output.RunResult{
+				Language: lang,
+				File:     filename,
+				ExitCode: 1,
+				Stderr:   msg,
+			}
+			_ = output.PrintRun(os.Stdout, result)
+			return nil
+		}
+		ui.Error("%s", msg)
+		return fmt.Errorf("%s", msg)
 	}
 
 	// Load configuration
 	cfg, err := config.Load()
 	if err != nil {
-		ui.Error("Failed to load configuration: %v", err)
+		msg := advisorpkg.Generic("failed to load configuration", err)
+		if jsonOutput {
+			result := output.RunResult{
+				Language: lang,
+				File:     filename,
+				ExitCode: 1,
+				Stderr:   msg,
+			}
+			_ = output.PrintRun(os.Stdout, result)
+			return nil
+		}
+		ui.Error("%s", msg)
 		return fmt.Errorf("failed to load configuration: %w", err)
 	}
 
 	// Detect language (with custom extension support)
-	lang, err := detector.DetectLanguageWithConfig(filename, cfg)
+	detectedLang, err := detector.DetectLanguageWithConfig(filename, cfg)
 	if err != nil {
-		ui.Error("Failed to detect language: %v", err)
+		msg := advisorpkg.Generic("failed to detect language", err)
+		if jsonOutput {
+			result := output.RunResult{
+				Language: lang,
+				File:     filename,
+				ExitCode: 1,
+				Stderr:   msg,
+			}
+			_ = output.PrintRun(os.Stdout, result)
+			return nil
+		}
+		ui.Error("%s", msg)
 		return err
 	}
 
 	if !quiet {
-		ui.Info("Detected: %s", ui.Language(lang.Name()))
+		ui.Info("Detected: %s", ui.Language(detectedLang.Name()))
 	}
 
 	// Check if language is enabled
-	if !cfg.IsLanguageEnabled(lang.Name()) {
-		ui.Error("Language %s is disabled in configuration", lang.Name())
-		return fmt.Errorf("language %s is disabled in configuration", lang.Name())
+	if !cfg.IsLanguageEnabled(detectedLang.Name()) {
+		msg := fmt.Sprintf("language %s is disabled in configuration", detectedLang.Name())
+		if jsonOutput {
+			result := output.RunResult{
+				Language: detectedLang.Name(),
+				File:     filename,
+				ExitCode: 1,
+				Stderr:   msg,
+			}
+			_ = output.PrintRun(os.Stdout, result)
+			return nil
+		}
+		ui.Error("Language %s is disabled in configuration", detectedLang.Name())
+		return fmt.Errorf("%s", msg)
 	}
 
 	// Get language handler
-	handler := language.GetHandler(lang)
+	handler := language.GetHandler(detectedLang)
 	if handler == nil {
-		ui.Error("No handler found for language: %s", lang)
-		return fmt.Errorf("no handler found for language: %s", lang)
+		msg := fmt.Sprintf("no handler found for language: %s", detectedLang)
+		if jsonOutput {
+			result := output.RunResult{
+				Language: detectedLang.Name(),
+				File:     filename,
+				ExitCode: 1,
+				Stderr:   msg,
+			}
+			_ = output.PrintRun(os.Stdout, result)
+			return nil
+		}
+		ui.Error("No handler found for language: %s", detectedLang)
+		return fmt.Errorf("%s", msg)
 	}
 
 	// Dry run mode
 	if dryRun {
 		ui.Header("Dry Run Mode")
 		ui.Info("File: %s", ui.File(filename))
-		ui.Info("Language: %s", ui.Language(lang.Name()))
+		ui.Info("Language: %s", ui.Language(detectedLang.Name()))
 		ui.Info("Handler: %s", handler.Name())
 
 		if handler.NeedsCompilation() {
 			ui.Step("Would compile: %s", ui.Command(getCompileCommand(handler, filename)))
 		}
 
-		runCmd := getRunCommand(handler, filename, args)
-		ui.Step("Would execute: %s", ui.Command(runCmd))
+		cmdStr := getRunCommand(handler, filename, args)
+		ui.Step("Would execute: %s", ui.Command(cmdStr))
 
 		if len(args) > 0 {
 			ui.Info("Arguments: %s", strings.Join(args, ", "))
@@ -102,22 +187,22 @@ func runFile(cmd *cobra.Command, cmdArgs []string) error {
 	if cfg.AutoInstall.Enabled {
 		// Auto-install mode
 		inst := installer.New(true, quiet)
-		command := getCommandForLanguage(lang.Name())
+		command := getCommandForLanguage(detectedLang.Name())
 		if command != "" && !inst.IsAvailable(command) {
 			if !quiet {
-				ui.Info("Auto-installing %s...", lang.Name())
+				ui.Info("Auto-installing %s...", detectedLang.Name())
 			}
-			if err := inst.Install(lang.Name(), command); err != nil {
-				ui.Error("Failed to install %s: %v", lang.Name(), err)
-				return fmt.Errorf("failed to install %s: %w", lang.Name(), err)
+			if err := inst.Install(detectedLang.Name(), command); err != nil {
+				ui.Error("Failed to install %s: %v", detectedLang.Name(), err)
+				return fmt.Errorf("failed to install %s: %w", detectedLang.Name(), err)
 			}
 		}
 	} else {
 		// Prompt mode (default)
 		inst := installer.New(false, quiet)
-		command := getCommandForLanguage(lang.Name())
+		command := getCommandForLanguage(detectedLang.Name())
 		if command != "" && !inst.IsAvailable(command) {
-			if err := inst.InstallIfMissing(lang.Name(), command); err != nil {
+			if err := inst.InstallIfMissing(detectedLang.Name(), command); err != nil {
 				return err
 			}
 		}
@@ -125,6 +210,33 @@ func runFile(cmd *cobra.Command, cmdArgs []string) error {
 
 	// Execute with configuration
 	exec := executor.NewWithConfig(verbose, quiet, cfg)
+
+	if jsonOutput {
+		startTime := time.Now()
+		runErr := exec.Run(handler, filename, args)
+		durationMs := time.Since(startTime).Milliseconds()
+
+		exitCode := 0
+		stderrMsg := ""
+		if runErr != nil {
+			exitCode = 1
+			stderrMsg = runErr.Error()
+			if execErr, ok := runErr.(*executor.ExecutionError); ok {
+				exitCode = execErr.ExitCode
+			}
+		}
+
+		result := output.RunResult{
+			Language:   detectedLang.Name(),
+			File:       filename,
+			ExitCode:   exitCode,
+			Stdout:     "",
+			Stderr:     stderrMsg,
+			DurationMs: durationMs,
+		}
+		return output.PrintRun(os.Stdout, result)
+	}
+
 	return exec.Run(handler, filename, args)
 }
 
@@ -190,37 +302,37 @@ func getCompileCommand(handler types.LanguageHandler, filename string) string {
 
 // getRunCommand returns the run command for a language
 func getRunCommand(handler types.LanguageHandler, filename string, args []string) string {
-	var cmd string
+	var cmdStr string
 	switch handler.Name() {
 	case "Python":
-		cmd = fmt.Sprintf("python3 %s", filename)
+		cmdStr = fmt.Sprintf("python3 %s", filename)
 	case "Go":
-		cmd = fmt.Sprintf("go run %s", filename)
+		cmdStr = fmt.Sprintf("go run %s", filename)
 	case "JavaScript":
-		cmd = fmt.Sprintf("node %s", filename)
+		cmdStr = fmt.Sprintf("node %s", filename)
 	case "Ruby":
-		cmd = fmt.Sprintf("ruby %s", filename)
+		cmdStr = fmt.Sprintf("ruby %s", filename)
 	case "PHP":
-		cmd = fmt.Sprintf("php %s", filename)
+		cmdStr = fmt.Sprintf("php %s", filename)
 	case "Perl":
-		cmd = fmt.Sprintf("perl %s", filename)
+		cmdStr = fmt.Sprintf("perl %s", filename)
 	case "Lua":
-		cmd = fmt.Sprintf("lua %s", filename)
+		cmdStr = fmt.Sprintf("lua %s", filename)
 	case "Shell":
-		cmd = fmt.Sprintf("bash %s", filename)
+		cmdStr = fmt.Sprintf("bash %s", filename)
 	default:
 		if handler.NeedsCompilation() {
-			cmd = fmt.Sprintf("./%s", getOutputName(filename))
+			cmdStr = fmt.Sprintf("./%s", getOutputName(filename))
 		} else {
-			cmd = fmt.Sprintf("%s %s", strings.ToLower(handler.Name()), filename)
+			cmdStr = fmt.Sprintf("%s %s", strings.ToLower(handler.Name()), filename)
 		}
 	}
 
 	if len(args) > 0 {
-		cmd += " " + strings.Join(args, " ")
+		cmdStr += " " + strings.Join(args, " ")
 	}
 
-	return cmd
+	return cmdStr
 }
 
 // getOutputName returns the output binary name for a source file

@@ -2,10 +2,15 @@ package cli
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 
 	"github.com/spf13/cobra"
+	"github.com/velo4705/polyglot/internal/output"
+	versionpkg "github.com/velo4705/polyglot/internal/version"
 )
+
+var checkJSON bool
 
 var checkCmd = &cobra.Command{
 	Use:   "check",
@@ -15,12 +20,10 @@ var checkCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(checkCmd)
+	checkCmd.Flags().BoolVar(&checkJSON, "json", false, "Output results as JSON")
 }
 
 func checkToolchains(cmd *cobra.Command, args []string) error {
-	fmt.Println("Checking installed toolchains...")
-	fmt.Println("================================")
-
 	toolchains := map[string]string{
 		"Python":     "python3",
 		"Go":         "go",
@@ -54,17 +57,64 @@ func checkToolchains(cmd *cobra.Command, args []string) error {
 		"Brainfuck":  "bf",
 	}
 
+	type langResult struct {
+		lang        string
+		command     string
+		isInstalled bool
+		versionStr  string
+	}
+
+	results := make([]langResult, 0, len(toolchains))
 	installed := 0
-	total := len(toolchains)
 
 	for lang, command := range toolchains {
 		_, err := exec.LookPath(command)
-		status := "✗ NOT FOUND"
-		if err == nil {
-			status = "✓ INSTALLED"
+		isInstalled := err == nil
+		var versionStr string
+		if isInstalled {
 			installed++
+			v, ok := versionpkg.Get(lang)
+			if !ok {
+				versionStr = ""
+			} else {
+				versionStr = v
+			}
 		}
-		fmt.Printf("%-15s %-15s %s\n", lang, command, status)
+		results = append(results, langResult{
+			lang:        lang,
+			command:     command,
+			isInstalled: isInstalled,
+			versionStr:  versionStr,
+		})
+	}
+
+	if checkJSON {
+		entries := make([]output.CheckEntry, 0, len(results))
+		for _, r := range results {
+			entries = append(entries, output.CheckEntry{
+				Language:  r.lang,
+				Installed: r.isInstalled,
+				Version:   r.versionStr,
+			})
+		}
+		return output.PrintCheck(os.Stdout, output.CheckResult{Languages: entries})
+	}
+
+	// Plain-text output
+	fmt.Println("Checking installed toolchains...")
+	fmt.Println("================================")
+
+	total := len(toolchains)
+	for _, r := range results {
+		var status string
+		if !r.isInstalled {
+			status = "✗ NOT FOUND"
+		} else if r.versionStr == "" || r.versionStr == "unknown" {
+			status = "✓ (version unknown)"
+		} else {
+			status = "✓ " + r.versionStr
+		}
+		fmt.Printf("%-15s %-15s %s\n", r.lang, r.command, status)
 	}
 
 	fmt.Println("================================")

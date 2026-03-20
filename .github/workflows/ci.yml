@@ -17,12 +17,12 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v4.2.2
       with:
         fetch-depth: 0
 
     - name: Set up Go
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v5.3.0
       with:
         go-version: ${{ matrix.go-version }}
         cache: true
@@ -87,7 +87,7 @@ jobs:
           ./cmd/polyglot ./internal/... ./pkg/... ./test
 
     - name: Upload coverage
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v5
       with:
         file: ./coverage.txt
 
@@ -100,10 +100,10 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v4.2.2
 
     - name: Set up Go
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v5.3.0
       with:
         go-version: '1.22'
 
@@ -113,7 +113,7 @@ jobs:
         go mod verify
 
     - name: Run golangci-lint
-      uses: golangci/golangci-lint-action@v3
+      uses: golangci/golangci-lint-action@v6
       with:
         version: latest
         args: --timeout=5m

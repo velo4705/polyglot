@@ -2,6 +2,7 @@ package cli
 
 import (
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/velo4705/polyglot/internal/ui"
@@ -59,7 +60,12 @@ If installed via a package manager (Homebrew, APT), it will use that instead.`,
 
 		// Fall back to direct binary update
 		if err := u.Update(release); err != nil {
-			ui.Error("Update failed: %v", err)
+			if strings.Contains(err.Error(), "no binary found") {
+				ui.Error("No pre-built binary found for your platform (%s)", err)
+				ui.Dim("You can build from source: https://github.com/velo4705/polyglot")
+			} else {
+				ui.Error("Update failed: %v", err)
+			}
 			os.Exit(1)
 		}
 	},

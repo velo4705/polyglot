@@ -385,8 +385,8 @@ func (u *Updater) UpdateViaPackageManager() error {
 		return cmd.Run()
 	}
 
-	// Default to direct binary update
-	return nil
+	// No package manager detected — caller should use direct binary update
+	return fmt.Errorf("no package manager detected")
 }
 
 // isInstalledViaHomebrew checks if installed via Homebrew

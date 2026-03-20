@@ -31,8 +31,8 @@ func TestVersion(t *testing.T) {
 	if !strings.Contains(outputStr, "Polyglot") {
 		t.Error("Version output should contain 'Polyglot'")
 	}
-	if !strings.Contains(outputStr, "1.0.1") {
-		t.Error("Version output should contain '1.0.1'")
+	if !strings.Contains(outputStr, "1.1.0") {
+		t.Error("Version output should contain '1.1.0'")
 	}
 }
 

@@ -6,8 +6,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const version = "1.0.1"
-const milestone = "Production Ready - Auto-Update Feature Added!"
+const version = "1.1.0"
+const milestone = "UX Polish - Shell Completions, Stdin Support, JSON Output"
 
 var versionCmd = &cobra.Command{
 	Use:   "version",

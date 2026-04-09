@@ -20,7 +20,7 @@ func NewSpinner(message string) *Spinner {
 	return &Spinner{
 		message: message,
 		frames:  []string{"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"},
-		done:    make(chan bool),
+		done:    make(chan bool, 1),
 	}
 }
 

@@ -12,6 +12,15 @@ import (
 	"github.com/velo4705/polyglot/pkg/types"
 )
 
+// runStreaming runs a command with stdin/stdout/stderr connected directly to the terminal.
+func runStreaming(name string, args ...string) error {
+	cmd := exec.Command(name, args...)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
+}
+
 type ExecutionError struct {
 	Message  string
 	ExitCode int
@@ -99,12 +108,7 @@ func (e *Executor) Run(handler types.LanguageHandler, filename string, args []st
 		ui.Step("Executing: %s", ui.Command(cmdStr))
 	}
 
-	output, err := handler.Run(filename, args)
-
-	// Print output (both stdout and stderr)
-	if len(output) > 0 {
-		fmt.Print(string(output))
-	}
+	err := e.runStreamed(handler, filename, args)
 
 	if err != nil {
 		// Check if it's an exit error to preserve exit code
@@ -145,9 +149,115 @@ func (e *Executor) Compile(handler types.LanguageHandler, filename string) error
 	return nil
 }
 
+// RunBuffered runs the program and captures output (used for --json mode).
+func (e *Executor) RunBuffered(handler types.LanguageHandler, filename string, args []string) ([]byte, error) {
+	if handler.NeedsCompilation() {
+		outputBin := e.getOutputName(filename)
+		spinner := ui.NewSpinner(fmt.Sprintf("Compiling %s", handler.Name()))
+		if !e.quiet && !e.verbose {
+			spinner.Start()
+		}
+		err := handler.Compile(filename, outputBin)
+		if !e.quiet && !e.verbose {
+			spinner.Stop()
+		}
+		if err != nil {
+			return nil, err
+		}
+		defer func() {
+			os.Remove(outputBin)
+			if handler.Name() == "Java" {
+				dir := filepath.Dir(filename)
+				className := strings.TrimSuffix(filepath.Base(filename), ".java")
+				os.Remove(filepath.Join(dir, className+".class"))
+			}
+		}()
+	}
+	return handler.Run(filename, args)
+}
+
 func (e *Executor) getOutputName(filename string) string {
 	ext := filepath.Ext(filename)
 	return strings.TrimSuffix(filename, ext)
+}
+
+// getAbsOutputName returns an absolute path for the compiled binary,
+// ensuring it can be executed regardless of working directory.
+func (e *Executor) getAbsOutputName(filename string) string {
+	abs, err := filepath.Abs(e.getOutputName(filename))
+	if err != nil {
+		return e.getOutputName(filename)
+	}
+	return abs
+}
+
+// runStreamed executes the program with stdin/stdout/stderr wired to the terminal.
+func (e *Executor) runStreamed(handler types.LanguageHandler, filename string, args []string) error {
+	var name string
+	var cmdArgs []string
+
+	switch handler.Name() {
+	case "C", "C++":
+		binary := e.getAbsOutputName(filename)
+		name = binary
+		cmdArgs = args
+	case "Java":
+		className := strings.TrimSuffix(filepath.Base(filename), ".java")
+		name = "java"
+		cmdArgs = append([]string{className}, args...)
+	case "Go":
+		name = "go"
+		cmdArgs = append([]string{"run", filename}, args...)
+	case "Python":
+		name = "python3"
+		cmdArgs = append([]string{filename}, args...)
+	case "JavaScript":
+		name = "node"
+		cmdArgs = append([]string{filename}, args...)
+	case "Ruby":
+		name = "ruby"
+		cmdArgs = append([]string{filename}, args...)
+	case "PHP":
+		name = "php"
+		cmdArgs = append([]string{filename}, args...)
+	case "Perl":
+		name = "perl"
+		cmdArgs = append([]string{filename}, args...)
+	case "Lua":
+		name = "lua"
+		cmdArgs = append([]string{filename}, args...)
+	case "Shell":
+		name = "bash"
+		cmdArgs = append([]string{filename}, args...)
+	case "TypeScript":
+		name = "ts-node"
+		cmdArgs = append([]string{filename}, args...)
+	case "Rust":
+		binary := e.getAbsOutputName(filename)
+		name = binary
+		cmdArgs = args
+	default:
+		// For other compiled languages, run the output binary
+		if handler.NeedsCompilation() {
+			name = e.getAbsOutputName(filename)
+			cmdArgs = args
+		} else {
+			name = strings.ToLower(handler.Name())
+			cmdArgs = append([]string{filename}, args...)
+		}
+	}
+
+	cmd := exec.Command(name, cmdArgs...)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	// For Java, run from the file's directory so the class is found
+	if handler.Name() == "Java" {
+		cmd.Dir = filepath.Dir(filename)
+	}
+
+	return cmd.Run()
 }
 
 func (e *Executor) getCommand(handler types.LanguageHandler, filename string) string {

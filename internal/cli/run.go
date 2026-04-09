@@ -213,11 +213,12 @@ func runFile(cmd *cobra.Command, cmdArgs []string) error {
 
 	if jsonOutput {
 		startTime := time.Now()
-		runErr := exec.Run(handler, filename, args)
+		outBytes, runErr := exec.RunBuffered(handler, filename, args)
 		durationMs := time.Since(startTime).Milliseconds()
 
 		exitCode := 0
 		stderrMsg := ""
+		stdoutStr := string(outBytes)
 		if runErr != nil {
 			exitCode = 1
 			stderrMsg = runErr.Error()
@@ -230,7 +231,7 @@ func runFile(cmd *cobra.Command, cmdArgs []string) error {
 			Language:   detectedLang.Name(),
 			File:       filename,
 			ExitCode:   exitCode,
-			Stdout:     "",
+			Stdout:     stdoutStr,
 			Stderr:     stderrMsg,
 			DurationMs: durationMs,
 		}

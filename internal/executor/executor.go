@@ -12,7 +12,6 @@ import (
 	"github.com/velo4705/polyglot/pkg/types"
 )
 
-
 type ExecutionError struct {
 	Message  string
 	ExitCode int

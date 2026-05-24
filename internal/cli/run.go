@@ -48,7 +48,8 @@ func init() {
 	runCmd.Flags().StringVar(&lang, "lang", "", "Language name (required when reading from stdin)")
 	runCmd.Flags().BoolVar(&sandboxMode, "sandbox", false, "Enable sandboxed execution (enforces memory/CPU/time limits)")
     runCmd.Flags().StringVar(&provider, "provider", "", "Specify LLM provider (gemini|openai|groq|anthropic|github)")
-    // Existing flag definitions remain unchanged}
+    // Existing flag definitions remain unchanged
+}
 
 func runFile(cmd *cobra.Command, cmdArgs []string) error {
 	var filename string

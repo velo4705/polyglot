@@ -114,3 +114,9 @@ a.out
 .*.swo
 
 CONTEXT_TRANSFER.md
+
+# Additional ignored test artifacts
+test/
+tmp_test/
+*_test.go
+sandbox_test.py

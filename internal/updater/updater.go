@@ -394,10 +394,19 @@ func (u *Updater) replaceBinary(newBinary, currentBinary string) error {
 			os.Remove(oldBinary)
 		}()
 	} else {
-		// Unix: can replace directly
-		if err := u.copyFile(newBinary, currentBinary); err != nil {
+		// Unix: rename current binary to .old (allowed while running)
+		oldBinary := currentBinary + ".old"
+		if err := os.Rename(currentBinary, oldBinary); err != nil {
 			return err
 		}
+		// Rename new binary into place
+		if err := os.Rename(newBinary, currentBinary); err != nil {
+			// Attempt to restore original binary on failure
+			_ = os.Rename(oldBinary, currentBinary)
+			return err
+		}
+		// Remove backup
+		os.Remove(oldBinary)
 	}
 
 	return nil

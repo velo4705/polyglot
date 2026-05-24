@@ -170,9 +170,9 @@ func (u *Updater) Update(release *Release) error {
 			if !u.quiet {
 				ui.Step("Verifying SHA256 checksum...")
 			}
-			if err := VerifyChecksum(tmpFile, asset.BrowserDownloadURL); err != nil {
+			if errChecksum := VerifyChecksum(tmpFile, asset.BrowserDownloadURL); errChecksum != nil {
 				os.Remove(tmpFile)
-				return fmt.Errorf("checksum verification failed: %w", err)
+				return fmt.Errorf("checksum verification failed: %w", errChecksum)
 			}
 			if !u.quiet {
 				ui.Success("Checksum verified")
@@ -187,9 +187,9 @@ func (u *Updater) Update(release *Release) error {
 			if !u.quiet {
 				ui.Step("Verifying GPG signature...")
 			}
-			if err := VerifyGPGSignature(tmpFile, asset.BrowserDownloadURL); err != nil {
+			if errGPG := VerifyGPGSignature(tmpFile, asset.BrowserDownloadURL); errGPG != nil {
 				if !u.quiet {
-					ui.Warning("%v", err)
+					ui.Warning("%v", errGPG)
 				}
 				// GPG failure is a warning, not a hard stop (signer key may not be imported)
 			} else if !u.quiet {

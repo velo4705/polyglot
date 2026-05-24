@@ -83,8 +83,8 @@ func VerifyGPGSignature(binaryPath, signatureURL string) error {
 	defer os.Remove(tmpSig.Name())
 	defer tmpSig.Close()
 
-	if _, err := io.Copy(tmpSig, resp.Body); err != nil {
-		return fmt.Errorf("writing signature: %w", err)
+	if _, copyErr := io.Copy(tmpSig, resp.Body); copyErr != nil {
+		return fmt.Errorf("writing signature: %w", copyErr)
 	}
 	tmpSig.Close()
 

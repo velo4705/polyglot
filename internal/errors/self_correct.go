@@ -238,9 +238,7 @@ func ClassifyError(errStr string, langName string) (bool, string) {
 		if matches := re.FindStringSubmatch(errLower); len(matches) > 1 {
 			header := matches[1]
 			libGuess := strings.TrimSuffix(header, filepath.Ext(header))
-			if strings.HasPrefix(libGuess, "sys/") {
-				libGuess = strings.TrimPrefix(libGuess, "sys/")
-			}
+			libGuess = strings.TrimPrefix(libGuess, "sys/")
 
 			pm := installer.DetectPackageManager()
 			if pm != nil {

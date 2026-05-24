@@ -225,6 +225,53 @@ Yes! Polyglot adds minimal overhead:
 
 ---
 
+## Self‑Correct API
+
+### What is Self‑Correct?
+
+The `--self-correct` flag enables Polyglot to automatically fix syntax or compilation errors by sending the source code to a language model. You must provide your own API key for the LLM you want to use.
+
+### How do I provide my API key?
+
+Set one of the supported environment variables before running Polyglot:
+
+- **Gemini:** `export GEMINI_API_KEY=your_key`
+- **OpenAI:** `export OPENAI_API_KEY=your_key`
+- **Groq:** `export GROQ_API_KEY=your_key`
+- **Anthropic:** `export ANTHROPIC_API_KEY=your_key`
+- **GitHub:** `export GITHUB_TOKEN=your_token`
+
+If more than one key is present, specify the provider with `--provider <gemini|openai|groq|anthropic|github>`.
+
+### How to use Self‑Correct
+
+```bash
+# Basic usage (Gemini)
+export GEMINI_API_KEY=your_key
+polyglot run broken.py --self-correct
+
+# Specify provider explicitly
+polyglot run broken.py --self-correct --provider openai
+```
+
+The command runs the program, and if a syntax error is detected, Polyglot sends the file to the selected LLM, receives a corrected version, rewrites the file, and re‑executes it automatically.
+
+### Supported providers
+
+- Gemini (default)
+- OpenAI
+- Groq
+- Anthropic
+- GitHub
+
+### Limitations
+
+- Only syntax/file‑level errors are auto‑corrected.
+- The feature is opt‑in; without `--self-correct` the program runs normally.
+- Provider support beyond Gemini is currently a stub and will return “not yet implemented” until fully wired.
+
+
+
 ## Comparison Questions
 
 ### How is this different from Docker?

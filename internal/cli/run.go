@@ -20,19 +20,23 @@ import (
 )
 
 var (
-	verbose    bool
-	quiet      bool
-	args       []string
-	dryRun     bool
-	jsonOutput bool
-	lang       string
+	verbose     bool
+	quiet       bool
+	args        []string
+	dryRun      bool
+	jsonOutput  bool
+	lang        string
+	sandboxMode bool
+	selfCorrect bool
+	provider    string // LLM provider name (gemini|openai|groq|anthropic|github)
 )
 
 var runCmd = &cobra.Command{
-	Use:   "run [file]",
-	Short: "Detect and run a source file",
-	Args:  cobra.RangeArgs(0, 1),
-	RunE:  runFile,
+	Use:          "run [file]",
+	Short:        "Detect and run a source file",
+	Args:         cobra.RangeArgs(0, 1),
+	RunE:         runFile,
+	SilenceUsage: true,
 }
 
 func init() {
@@ -42,7 +46,9 @@ func init() {
 	runCmd.Flags().BoolVar(&dryRun, "dry-run", false, "Show what would be executed without running")
 	runCmd.Flags().BoolVar(&jsonOutput, "json", false, "Output results as JSON")
 	runCmd.Flags().StringVar(&lang, "lang", "", "Language name (required when reading from stdin)")
-}
+	runCmd.Flags().BoolVar(&sandboxMode, "sandbox", false, "Enable sandboxed execution (enforces memory/CPU/time limits)")
+    runCmd.Flags().StringVar(&provider, "provider", "", "Specify LLM provider (gemini|openai|groq|anthropic|github)")
+    // Existing flag definitions remain unchanged}
 
 func runFile(cmd *cobra.Command, cmdArgs []string) error {
 	var filename string
@@ -86,7 +92,6 @@ func runFile(cmd *cobra.Command, cmdArgs []string) error {
 		return fmt.Errorf("%s", msg)
 	}
 
-	// Load configuration
 	cfg, err := config.Load()
 	if err != nil {
 		msg := advisorpkg.Generic("failed to load configuration", err)
@@ -102,6 +107,9 @@ func runFile(cmd *cobra.Command, cmdArgs []string) error {
 		}
 		ui.Error("%s", msg)
 		return fmt.Errorf("failed to load configuration: %w", err)
+	}
+	if sandboxMode {
+		cfg.Sandbox.Enabled = true
 	}
 
 	// Detect language (with custom extension support)
@@ -224,6 +232,7 @@ func runFile(cmd *cobra.Command, cmdArgs []string) error {
 			stderrMsg = runErr.Error()
 			if execErr, ok := runErr.(*executor.ExecutionError); ok {
 				exitCode = execErr.ExitCode
+				stderrMsg = execErr.Stderr
 			}
 		}
 
@@ -238,7 +247,87 @@ func runFile(cmd *cobra.Command, cmdArgs []string) error {
 		return output.PrintRun(os.Stdout, result)
 	}
 
-	return exec.Run(handler, filename, args)
+	runErr := exec.Run(handler, filename, args)
+if runErr != nil {
+    stderrStr := runErr.Error()
+    if execErr, ok := runErr.(*executor.ExecutionError); ok {
+        stderrStr = execErr.Stderr
+    }
+
+    // Classify error first
+    isLib, instruction := advisorpkg.ClassifyError(stderrStr, detectedLang.Name())
+    if isLib {
+        ui.Error("%s", instruction)
+        return runErr
+    }
+
+    // Self-correction handling (only when flag is set)
+    if selfCorrect {
+        // Known providers and their env vars
+        providerEnv := map[string]string{
+            "gemini":    "GEMINI_API_KEY",
+            "openai":    "OPENAI_API_KEY",
+            "groq":      "GROQ_API_KEY",
+            "anthropic": "ANTHROPIC_API_KEY",
+            "github":    "GITHUB_TOKEN",
+        }
+        // Determine which provider to use
+        var selProvider string
+        var apiKey string
+        if provider != "" {
+            // User explicitly requested a provider
+            env, ok := providerEnv[provider]
+            if !ok {
+                ui.Error("Unsupported provider: %s", provider)
+                return fmt.Errorf("unsupported provider %s", provider)
+            }
+            apiKey = os.Getenv(env)
+            if apiKey == "" {
+                ui.Error("Environment variable %s not set for provider %s", env, provider)
+                return fmt.Errorf("missing api key for %s", provider)
+            }
+            selProvider = provider
+        } else {
+            // Auto-detect: first available key wins, but error on multiple keys
+            for p, env := range providerEnv {
+                if k := os.Getenv(env); k != "" {
+                    if apiKey != "" {
+                        ui.Error("Multiple LLM API keys detected. Use --provider to specify which one.")
+                        return fmt.Errorf("multiple api keys present")
+                    }
+                    apiKey = k
+                    selProvider = p
+                }
+            }
+        }
+        if apiKey == "" {
+            var keys []string
+            for _, env := range providerEnv {
+                keys = append(keys, env)
+            }
+            ui.Error("Self-correction requires an LLM API key. Set one of: %s", strings.Join(keys, ", "))
+            return fmt.Errorf("no api key for self-correction")
+        }
+        // Currently only Gemini is implemented
+        if selProvider == "gemini" {
+            // Ensure the env var for existing SelfCorrectFile logic
+            os.Setenv("GEMINI_API_KEY", apiKey)
+            if err := advisorpkg.SelfCorrectFile(filename, stderrStr, detectedLang.Name()); err != nil {
+                ui.Error("Self-correction failed: %v", err)
+                return runErr
+            }
+            // Re-run the corrected file
+            return exec.Run(handler, filename, args)
+        }
+        ui.Error("Self-correction for provider %s is not yet implemented", selProvider)
+        return runErr
+    }
+
+    // No auto-correction; return original error
+    return runErr
+}
+return nil
+
 }
 
 // getCommandForLanguage returns the command name for a language

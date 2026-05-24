@@ -13,6 +13,7 @@ type Config struct {
 	Languages        map[string]LanguageConfig `yaml:"languages,omitempty"`
 	CustomExtensions map[string]string         `yaml:"custom_extensions,omitempty"`
 	Environment      map[string]string         `yaml:"environment,omitempty"`
+	Sandbox          SandboxConfig             `yaml:"sandbox,omitempty"`
 }
 
 // AutoInstallConfig represents auto-install settings
@@ -20,6 +21,14 @@ type AutoInstallConfig struct {
 	Enabled bool   `yaml:"enabled"`
 	Method  string `yaml:"method"` // system, script, managed
 	Prompt  bool   `yaml:"prompt"`
+}
+
+// SandboxConfig represents sandboxing settings
+type SandboxConfig struct {
+	Enabled       bool  `yaml:"enabled"`
+	MemoryLimitMB int64 `yaml:"memory_limit_mb"` // Memory limit in MB
+	CPULimit      int   `yaml:"cpu_limit"`       // CPU limit in seconds
+	Timeout       int   `yaml:"timeout"`         // Timeout limit in seconds
 }
 
 // LanguageConfig represents per-language configuration
@@ -43,6 +52,12 @@ func DefaultConfig() *Config {
 			Enabled: false, // Disabled by default for safety
 			Method:  "system",
 			Prompt:  true,
+		},
+		Sandbox: SandboxConfig{
+			Enabled:       false,
+			MemoryLimitMB: 256, // 256MB default
+			CPULimit:      10,  // 10s CPU time limit
+			Timeout:       15,  // 15s wall clock time limit
 		},
 		Languages:        make(map[string]LanguageConfig),
 		CustomExtensions: make(map[string]string),
@@ -142,6 +157,20 @@ func mergeConfigs(base, override *Config) *Config {
 	}
 	for k, v := range override.Environment {
 		result.Environment[k] = v
+	}
+
+	// Merge sandbox settings
+	if override.Sandbox.Enabled {
+		result.Sandbox.Enabled = override.Sandbox.Enabled
+	}
+	if override.Sandbox.MemoryLimitMB != 0 {
+		result.Sandbox.MemoryLimitMB = override.Sandbox.MemoryLimitMB
+	}
+	if override.Sandbox.CPULimit != 0 {
+		result.Sandbox.CPULimit = override.Sandbox.CPULimit
+	}
+	if override.Sandbox.Timeout != 0 {
+		result.Sandbox.Timeout = override.Sandbox.Timeout
 	}
 
 	return &result

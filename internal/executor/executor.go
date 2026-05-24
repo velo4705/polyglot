@@ -1,11 +1,15 @@
 package executor
 
 import (
+	"bytes"
+	"context"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/velo4705/polyglot/internal/config"
 	"github.com/velo4705/polyglot/internal/ui"
@@ -15,6 +19,7 @@ import (
 type ExecutionError struct {
 	Message  string
 	ExitCode int
+	Stderr   string
 }
 
 func (e *ExecutionError) Error() string {
@@ -99,7 +104,7 @@ func (e *Executor) Run(handler types.LanguageHandler, filename string, args []st
 		ui.Step("Executing: %s", ui.Command(cmdStr))
 	}
 
-	err := e.runStreamed(handler, filename, args)
+	stderrStr, err := e.runStreamed(handler, filename, args)
 
 	if err != nil {
 		// Check if it's an exit error to preserve exit code
@@ -107,9 +112,14 @@ func (e *Executor) Run(handler types.LanguageHandler, filename string, args []st
 			return &ExecutionError{
 				Message:  "program exited with error",
 				ExitCode: exitErr.ExitCode(),
+				Stderr:   stderrStr,
 			}
 		}
-		return fmt.Errorf("execution failed: %w", err)
+		return &ExecutionError{
+			Message:  err.Error(),
+			ExitCode: 1,
+			Stderr:   stderrStr,
+		}
 	}
 
 	return nil
@@ -164,7 +174,28 @@ func (e *Executor) RunBuffered(handler types.LanguageHandler, filename string, a
 			}
 		}()
 	}
-	return handler.Run(filename, args)
+
+	sandboxEnabled := e.config != nil && e.config.Sandbox.Enabled
+	sandboxTimeout := 0
+	if sandboxEnabled {
+		sandboxTimeout = e.config.Sandbox.Timeout
+	}
+
+	var ctx context.Context
+	var cancel context.CancelFunc
+	if sandboxEnabled && sandboxTimeout > 0 {
+		ctx, cancel = context.WithTimeout(context.Background(), time.Duration(sandboxTimeout)*time.Second)
+		defer cancel()
+	} else {
+		ctx = context.Background()
+	}
+
+	cmd := e.buildCmd(ctx, handler, filename, args)
+	output, err := cmd.CombinedOutput()
+	if ctx.Err() == context.DeadlineExceeded {
+		return nil, fmt.Errorf("execution timed out (limit: %ds)", sandboxTimeout)
+	}
+	return output, err
 }
 
 func (e *Executor) getOutputName(filename string) string {
@@ -183,7 +214,38 @@ func (e *Executor) getAbsOutputName(filename string) string {
 }
 
 // runStreamed executes the program with stdin/stdout/stderr wired to the terminal.
-func (e *Executor) runStreamed(handler types.LanguageHandler, filename string, args []string) error {
+func (e *Executor) runStreamed(handler types.LanguageHandler, filename string, args []string) (string, error) {
+	sandboxEnabled := e.config != nil && e.config.Sandbox.Enabled
+	sandboxTimeout := 0
+	if sandboxEnabled {
+		sandboxTimeout = e.config.Sandbox.Timeout
+	}
+
+	var ctx context.Context
+	var cancel context.CancelFunc
+	if sandboxEnabled && sandboxTimeout > 0 {
+		ctx, cancel = context.WithTimeout(context.Background(), time.Duration(sandboxTimeout)*time.Second)
+		defer cancel()
+	} else {
+		ctx = context.Background()
+	}
+
+	cmd := e.buildCmd(ctx, handler, filename, args)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+
+	var stderrBuf bytes.Buffer
+	cmd.Stderr = io.MultiWriter(os.Stderr, &stderrBuf)
+
+	err := cmd.Run()
+	if ctx.Err() == context.DeadlineExceeded {
+		return stderrBuf.String(), fmt.Errorf("execution timed out (limit: %ds)", sandboxTimeout)
+	}
+	return stderrBuf.String(), err
+}
+
+// buildCmd builds the command to execute, applying sandboxing resource limits (memory and CPU) via prlimit if enabled.
+func (e *Executor) buildCmd(ctx context.Context, handler types.LanguageHandler, filename string, args []string) *exec.Cmd {
 	var name string
 	var cmdArgs []string
 
@@ -238,17 +300,50 @@ func (e *Executor) runStreamed(handler types.LanguageHandler, filename string, a
 		}
 	}
 
-	cmd := exec.Command(name, cmdArgs...)
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	sandboxEnabled := false
+	sandboxMemory := int64(0)
+	sandboxCPU := 0
+
+	if e.config != nil {
+		sandboxEnabled = e.config.Sandbox.Enabled
+		sandboxMemory = e.config.Sandbox.MemoryLimitMB
+		sandboxCPU = e.config.Sandbox.CPULimit
+	}
+
+	hasPrlimit := false
+	if _, err := exec.LookPath("prlimit"); err == nil {
+		hasPrlimit = true
+	}
+
+	if sandboxEnabled {
+		prlimitArgs := []string{}
+		if sandboxMemory > 0 {
+			// Limit virtual memory size (address space) in bytes
+			prlimitArgs = append(prlimitArgs, fmt.Sprintf("--as=%d", sandboxMemory*1024*1024))
+		}
+		if sandboxCPU > 0 {
+			// Limit CPU time in seconds
+			prlimitArgs = append(prlimitArgs, fmt.Sprintf("--cpu=%d", sandboxCPU))
+		}
+
+		if len(prlimitArgs) > 0 && hasPrlimit {
+			prlimitArgs = append(prlimitArgs, name)
+			prlimitArgs = append(prlimitArgs, cmdArgs...)
+			name = "prlimit"
+			cmdArgs = prlimitArgs
+		} else if len(prlimitArgs) > 0 && !hasPrlimit && !e.quiet {
+			ui.Warning("prlimit not found. CPU and memory limits will not be enforced.")
+		}
+	}
+
+	cmd := exec.CommandContext(ctx, name, cmdArgs...)
 
 	// For Java, run from the file's directory so the class is found
 	if handler.Name() == "Java" {
 		cmd.Dir = filepath.Dir(filename)
 	}
 
-	return cmd.Run()
+	return cmd
 }
 
 func (e *Executor) getCommand(handler types.LanguageHandler, filename string) string {

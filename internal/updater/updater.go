@@ -17,6 +17,7 @@ import (
 
 const (
 	githubAPIURL    = "https://api.github.com/repos/velo4705/polyglot/releases/latest"
+	githubBetaURL   = "https://api.github.com/repos/velo4705/polyglot/releases"
 	updateCheckFile = ".polyglot/last_update_check"
 	checkInterval   = 24 * time.Hour
 )
@@ -36,6 +37,7 @@ type Release struct {
 type Updater struct {
 	currentVersion string
 	quiet          bool
+	channel        string // "stable" or "beta"
 }
 
 // New creates a new updater
@@ -43,29 +45,64 @@ func New(currentVersion string, quiet bool) *Updater {
 	return &Updater{
 		currentVersion: currentVersion,
 		quiet:          quiet,
+		channel:        "stable",
 	}
+}
+
+// SetChannel sets the update channel ("stable" or "beta")
+func (u *Updater) SetChannel(channel string) {
+	u.channel = channel
 }
 
 // CheckForUpdates checks if a new version is available
 func (u *Updater) CheckForUpdates() (*Release, bool, error) {
 	if !u.quiet {
-		ui.Info("Checking for updates...")
-	}
-
-	// Fetch latest release info
-	resp, err := http.Get(githubAPIURL)
-	if err != nil {
-		return nil, false, fmt.Errorf("failed to check for updates: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, false, fmt.Errorf("failed to fetch release info: status %d", resp.StatusCode)
+		if u.channel == "beta" {
+			ui.Info("Checking for updates (beta channel)...")
+		} else {
+			ui.Info("Checking for updates...")
+		}
 	}
 
 	var release Release
-	if err := json.NewDecoder(resp.Body).Decode(&release); err != nil {
-		return nil, false, fmt.Errorf("failed to parse release info: %w", err)
+
+	if u.channel == "beta" {
+		// Fetch list of all releases and pick the first pre-release or latest
+		resp, err := http.Get(githubBetaURL)
+		if err != nil {
+			return nil, false, fmt.Errorf("failed to check for updates: %w", err)
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			return nil, false, fmt.Errorf("failed to fetch release info: status %d", resp.StatusCode)
+		}
+
+		var releases []Release
+		if err := json.NewDecoder(resp.Body).Decode(&releases); err != nil {
+			return nil, false, fmt.Errorf("failed to parse release list: %w", err)
+		}
+
+		if len(releases) == 0 {
+			return nil, false, fmt.Errorf("no releases found")
+		}
+		// Use the most recent release (includes pre-releases on the beta channel)
+		release = releases[0]
+	} else {
+		// Stable channel: latest non-pre-release
+		resp, err := http.Get(githubAPIURL)
+		if err != nil {
+			return nil, false, fmt.Errorf("failed to check for updates: %w", err)
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			return nil, false, fmt.Errorf("failed to fetch release info: status %d", resp.StatusCode)
+		}
+
+		if err := json.NewDecoder(resp.Body).Decode(&release); err != nil {
+			return nil, false, fmt.Errorf("failed to parse release info: %w", err)
+		}
 	}
 
 	// Compare versions
@@ -125,6 +162,41 @@ func (u *Updater) Update(release *Release) error {
 
 	if !u.quiet {
 		ui.Success("Downloaded successfully")
+	}
+
+	// Verify SHA256 checksum if a .sha256 asset exists
+	for _, asset := range release.Assets {
+		if asset.Name == binaryName+".sha256" {
+			if !u.quiet {
+				ui.Step("Verifying SHA256 checksum...")
+			}
+			if err := VerifyChecksum(tmpFile, asset.BrowserDownloadURL); err != nil {
+				os.Remove(tmpFile)
+				return fmt.Errorf("checksum verification failed: %w", err)
+			}
+			if !u.quiet {
+				ui.Success("Checksum verified")
+			}
+			break
+		}
+	}
+
+	// Verify GPG signature if a .asc asset exists
+	for _, asset := range release.Assets {
+		if asset.Name == binaryName+".asc" {
+			if !u.quiet {
+				ui.Step("Verifying GPG signature...")
+			}
+			if err := VerifyGPGSignature(tmpFile, asset.BrowserDownloadURL); err != nil {
+				if !u.quiet {
+					ui.Warning("%v", err)
+				}
+				// GPG failure is a warning, not a hard stop (signer key may not be imported)
+			} else if !u.quiet {
+				ui.Success("GPG signature verified")
+			}
+			break
+		}
 	}
 
 	// Get current binary path

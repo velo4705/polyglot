@@ -11,6 +11,7 @@ import (
 
 var (
 	checkOnly bool
+	channel   string
 )
 
 var updateCmd = &cobra.Command{
@@ -32,6 +33,11 @@ If installed via a package manager (Homebrew, APT), it will use that instead.`,
   polyglot update --check`,
 	Run: func(cmd *cobra.Command, args []string) {
 		u := updater.New(version, false)
+
+		// Apply channel selection
+		if channel == "beta" {
+			u.SetChannel("beta")
+		}
 
 		// Check for updates
 		release, hasUpdate, err := u.CheckForUpdates()
@@ -73,5 +79,6 @@ If installed via a package manager (Homebrew, APT), it will use that instead.`,
 
 func init() {
 	updateCmd.Flags().BoolVar(&checkOnly, "check", false, "Only check for updates without installing")
+	updateCmd.Flags().StringVar(&channel, "channel", "stable", `Release channel to use: "stable" or "beta"`)
 	rootCmd.AddCommand(updateCmd)
 }

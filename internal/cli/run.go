@@ -47,8 +47,8 @@ func init() {
 	runCmd.Flags().BoolVar(&jsonOutput, "json", false, "Output results as JSON")
 	runCmd.Flags().StringVar(&lang, "lang", "", "Language name (required when reading from stdin)")
 	runCmd.Flags().BoolVar(&sandboxMode, "sandbox", false, "Enable sandboxed execution (enforces memory/CPU/time limits)")
-    runCmd.Flags().StringVar(&provider, "provider", "", "Specify LLM provider (gemini|openai|groq|anthropic|github)")
-    // Existing flag definitions remain unchanged
+	runCmd.Flags().StringVar(&provider, "provider", "", "Specify LLM provider (gemini|openai|groq|anthropic|github)")
+	// Existing flag definitions remain unchanged
 }
 
 func runFile(cmd *cobra.Command, cmdArgs []string) error {
@@ -249,85 +249,85 @@ func runFile(cmd *cobra.Command, cmdArgs []string) error {
 	}
 
 	runErr := exec.Run(handler, filename, args)
-if runErr != nil {
-    stderrStr := runErr.Error()
-    if execErr, ok := runErr.(*executor.ExecutionError); ok {
-        stderrStr = execErr.Stderr
-    }
+	if runErr != nil {
+		stderrStr := runErr.Error()
+		if execErr, ok := runErr.(*executor.ExecutionError); ok {
+			stderrStr = execErr.Stderr
+		}
 
-    // Classify error first
-    isLib, instruction := advisorpkg.ClassifyError(stderrStr, detectedLang.Name())
-    if isLib {
-        ui.Error("%s", instruction)
-        return runErr
-    }
+		// Classify error first
+		isLib, instruction := advisorpkg.ClassifyError(stderrStr, detectedLang.Name())
+		if isLib {
+			ui.Error("%s", instruction)
+			return runErr
+		}
 
-    // Self-correction handling (only when flag is set)
-    if selfCorrect {
-        // Known providers and their env vars
-        providerEnv := map[string]string{
-            "gemini":    "GEMINI_API_KEY",
-            "openai":    "OPENAI_API_KEY",
-            "groq":      "GROQ_API_KEY",
-            "anthropic": "ANTHROPIC_API_KEY",
-            "github":    "GITHUB_TOKEN",
-        }
-        // Determine which provider to use
-        var selProvider string
-        var apiKey string
-        if provider != "" {
-            // User explicitly requested a provider
-            env, ok := providerEnv[provider]
-            if !ok {
-                ui.Error("Unsupported provider: %s", provider)
-                return fmt.Errorf("unsupported provider %s", provider)
-            }
-            apiKey = os.Getenv(env)
-            if apiKey == "" {
-                ui.Error("Environment variable %s not set for provider %s", env, provider)
-                return fmt.Errorf("missing api key for %s", provider)
-            }
-            selProvider = provider
-        } else {
-            // Auto-detect: first available key wins, but error on multiple keys
-            for p, env := range providerEnv {
-                if k := os.Getenv(env); k != "" {
-                    if apiKey != "" {
-                        ui.Error("Multiple LLM API keys detected. Use --provider to specify which one.")
-                        return fmt.Errorf("multiple api keys present")
-                    }
-                    apiKey = k
-                    selProvider = p
-                }
-            }
-        }
-        if apiKey == "" {
-            var keys []string
-            for _, env := range providerEnv {
-                keys = append(keys, env)
-            }
-            ui.Error("Self-correction requires an LLM API key. Set one of: %s", strings.Join(keys, ", "))
-            return fmt.Errorf("no api key for self-correction")
-        }
-        // Currently only Gemini is implemented
-        if selProvider == "gemini" {
-            // Ensure the env var for existing SelfCorrectFile logic
-            os.Setenv("GEMINI_API_KEY", apiKey)
-            if err := advisorpkg.SelfCorrectFile(filename, stderrStr, detectedLang.Name()); err != nil {
-                ui.Error("Self-correction failed: %v", err)
-                return runErr
-            }
-            // Re-run the corrected file
-            return exec.Run(handler, filename, args)
-        }
-        ui.Error("Self-correction for provider %s is not yet implemented", selProvider)
-        return runErr
-    }
+		// Self-correction handling (only when flag is set)
+		if selfCorrect {
+			// Known providers and their env vars
+			providerEnv := map[string]string{
+				"gemini":    "GEMINI_API_KEY",
+				"openai":    "OPENAI_API_KEY",
+				"groq":      "GROQ_API_KEY",
+				"anthropic": "ANTHROPIC_API_KEY",
+				"github":    "GITHUB_TOKEN",
+			}
+			// Determine which provider to use
+			var selProvider string
+			var apiKey string
+			if provider != "" {
+				// User explicitly requested a provider
+				env, ok := providerEnv[provider]
+				if !ok {
+					ui.Error("Unsupported provider: %s", provider)
+					return fmt.Errorf("unsupported provider %s", provider)
+				}
+				apiKey = os.Getenv(env)
+				if apiKey == "" {
+					ui.Error("Environment variable %s not set for provider %s", env, provider)
+					return fmt.Errorf("missing api key for %s", provider)
+				}
+				selProvider = provider
+			} else {
+				// Auto-detect: first available key wins, but error on multiple keys
+				for p, env := range providerEnv {
+					if k := os.Getenv(env); k != "" {
+						if apiKey != "" {
+							ui.Error("Multiple LLM API keys detected. Use --provider to specify which one.")
+							return fmt.Errorf("multiple api keys present")
+						}
+						apiKey = k
+						selProvider = p
+					}
+				}
+			}
+			if apiKey == "" {
+				var keys []string
+				for _, env := range providerEnv {
+					keys = append(keys, env)
+				}
+				ui.Error("Self-correction requires an LLM API key. Set one of: %s", strings.Join(keys, ", "))
+				return fmt.Errorf("no api key for self-correction")
+			}
+			// Currently only Gemini is implemented
+			if selProvider == "gemini" {
+				// Ensure the env var for existing SelfCorrectFile logic
+				os.Setenv("GEMINI_API_KEY", apiKey)
+				if err := advisorpkg.SelfCorrectFile(filename, stderrStr, detectedLang.Name()); err != nil {
+					ui.Error("Self-correction failed: %v", err)
+					return runErr
+				}
+				// Re-run the corrected file
+				return exec.Run(handler, filename, args)
+			}
+			ui.Error("Self-correction for provider %s is not yet implemented", selProvider)
+			return runErr
+		}
 
-    // No auto-correction; return original error
-    return runErr
-}
-return nil
+		// No auto-correction; return original error
+		return runErr
+	}
+	return nil
 
 }
 

@@ -115,6 +115,12 @@ a.out
 
 CONTEXT_TRANSFER.md
 
+# Test artifacts
+test/
+tmp_test/
+*_test.go
+sandbox_test.py
+
 # Additional ignored test artifacts
 test/
 tmp_test/

@@ -12,9 +12,3 @@ func TestVersionIsSet(t *testing.T) {
 		t.Errorf("Version = %q, want %q", Version, "1.3.0")
 	}
 }
-
-func TestMilestoneIsSet(t *testing.T) {
-	if Milestone == "" {
-		t.Error("Milestone constant is empty")
-	}
-}

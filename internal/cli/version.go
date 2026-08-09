@@ -12,8 +12,6 @@ var versionCmd = &cobra.Command{
 	Short: "Print version information",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Printf("Polyglot v%s\n", version.Version)
-		fmt.Printf("%s\n", version.Milestone)
-		fmt.Println("Universal compiler and interpreter wrapper")
 	},
 }
 

@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `--compile-flags` CLI flag for manual compiler flag override
 - Auto-detection of compiler flags from source code patterns (C/C++: -std=c++17/20/23, -pthread, -lm, -fopenmp, etc.)
 - `--self-correct` flag properly registered (was dead code)
+- LLM self-correction supports 5 providers: Gemini (implemented), OpenAI, Groq, Anthropic, GitHub (stubs)
 
 ### Fixed
 - Version constant single source of truth (`pkg/version/version.go`) — was duplicated in `main.go` (1.0.1) and `cli/version.go` (1.2.0)
@@ -21,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Spinner data race fixed — `active` field changed to `atomic.Bool`
 - Spinner double-stop deadlock fixed — uses `select` with `default`
 - Duplicate error output fixed — `SilenceErrors: true` on root command
+- Run command resolution fixed for all new languages (Tcl→tclsh, R→Rscript, F#→dotnet, etc.) — was using `strings.ToLower(handler.Name())` in the default case
 
 ### Changed
 - `LanguageHandler.Compile()` signature now accepts `extraFlags []string`

@@ -301,8 +301,71 @@ func (e *Executor) buildCmd(ctx context.Context, handler types.LanguageHandler, 
 		binary := e.getAbsOutputName(filename)
 		name = binary
 		cmdArgs = args
+	case "Elixir":
+		name = "elixir"
+		cmdArgs = append([]string{filename}, args...)
+	case "Clojure":
+		name = "clojure"
+		cmdArgs = append([]string{filename}, args...)
+	case "Groovy":
+		name = "groovy"
+		cmdArgs = append([]string{filename}, args...)
+	case "Swift":
+		name = "swift"
+		cmdArgs = append([]string{"run", filename}, args...)
+	case "Kotlin":
+		name = "kotlin"
+		cmdArgs = append([]string{filename}, args...)
+	case "Scala":
+		name = "scala"
+		cmdArgs = append([]string{filename}, args...)
+	case "Dart":
+		name = "dart"
+		cmdArgs = append([]string{filename}, args...)
+	case "Zig":
+		name = "zig"
+		cmdArgs = append([]string{"run", filename}, args...)
+	case "Crystal":
+		name = "crystal"
+		cmdArgs = append([]string{"run", filename}, args...)
+	case "R":
+		name = "Rscript"
+		cmdArgs = append([]string{filename}, args...)
+	case "Julia":
+		name = "julia"
+		cmdArgs = append([]string{filename}, args...)
+	case "Brainfuck":
+		name = "bf"
+		cmdArgs = append([]string{filename}, args...)
+	case "F#":
+		name = "dotnet"
+		cmdArgs = append([]string{filename}, args...)
+	case "Scheme":
+		name = "guile"
+		cmdArgs = append([]string{filename}, args...)
+	case "Common Lisp":
+		name = "sbcl"
+		cmdArgs = append([]string{filename}, args...)
+	case "Forth":
+		name = "gforth"
+		cmdArgs = append([]string{filename}, args...)
+	case "Prolog":
+		name = "swipl"
+		cmdArgs = append([]string{filename}, args...)
+	case "Tcl":
+		name = "tclsh"
+		cmdArgs = append([]string{filename}, args...)
+	case "PureScript":
+		name = "spago"
+		cmdArgs = append([]string{"run", filename}, args...)
+	case "Roc":
+		name = "roc"
+		cmdArgs = append([]string{filename}, args...)
+	case "Elm":
+		binary := e.getAbsOutputName(filename)
+		name = binary
+		cmdArgs = args
 	default:
-		// For other compiled languages, run the output binary
 		if handler.NeedsCompilation() {
 			name = e.getAbsOutputName(filename)
 			cmdArgs = args
@@ -366,6 +429,18 @@ func (e *Executor) getCommand(handler types.LanguageHandler, filename string) st
 		return "go run"
 	case "JavaScript":
 		return "node"
+	case "Shell":
+		return "bash"
+	case "TypeScript":
+		return "ts-node"
+	case "Zig":
+		return "zig run"
+	case "Crystal":
+		return "crystal run"
+	case "Swift":
+		return "swift"
+	case "R":
+		return "Rscript"
 	default:
 		return handler.Name()
 	}

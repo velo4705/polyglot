@@ -3,14 +3,17 @@
 A universal compiler and interpreter wrapper. Detects language by file extension and runs it with the right toolchain.
 
 Supports **51 languages** — Python, JavaScript, Go, Java, C, C++, Rust, Ruby, PHP, and more.
+Implements Auto-Correction of Syntax errors and Auto-Applying Compilation Flags depending on Code.
 
 ## Install
 
+### One-Liner Installation
 ```bash
-# One-liner
 curl -sSL https://raw.githubusercontent.com/velo4705/polyglot/main/scripts/install.sh | bash
+```
 
-# Or from source
+### Source Installation
+```bash
 git clone https://github.com/velo4705/polyglot.git && cd polyglot
 make build && sudo make install
 ```

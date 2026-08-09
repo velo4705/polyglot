@@ -14,10 +14,11 @@ polyglot run <any-file>
 ### How many languages does it support?
 
 Currently **51 languages**:
-- **Interpreted:** Python, JavaScript, Ruby, PHP, Perl, Lua, Shell, TypeScript, Dart, Elixir, Erlang, Groovy, R, Julia, Scheme, Common Lisp, Forth, Prolog, Tcl, Clojure, Gleam, PureScript, Roc
-- **Compiled:** Go, Java, C, C++, Rust, Zig, Nim, Crystal, D, Swift, Kotlin, Scala, Haskell, OCaml, F#, Fortran, Pascal, Ada, COBOL, V, Odin, Elm
+- **Interpreted:** Python, JavaScript, Ruby, PHP, Perl, Lua, Shell, R, Julia, Elixir, Scheme, Common Lisp, Forth, Prolog, Tcl, Clojure, Brainfuck, F#
+- **Compiled:** Go, Java, C, C++, Rust, Zig, Nim, Crystal, D, Haskell, OCaml, Erlang, Kotlin, Scala, Swift, Dart, TypeScript, Elm, Gleam, PureScript, Roc, V, Odin, Fortran, Pascal, Ada, COBOL
 - **Assembly:** NASM, GAS, ARM Assembly, MIPS Assembly, RISC-V Assembly
-- **Esoteric:** Brainfuck
+
+> **Note:** Some "compiled" languages (e.g., Go, Zig, Crystal, Kotlin, Scala, Swift, Dart, TypeScript, V, Nim) support run-in-one-step execution via their toolchain's built-in runner (e.g., `go run`, `zig run`), so no separate compile step is needed. See `polyglot list` for full details including required toolchains.
 
 ### Is it free?
 
@@ -29,7 +30,7 @@ Yes! Polyglot is open source under the MIT License.
 
 ### Do I need to install all 51 language toolchains?
 
-**No!** You only need to install the languages you want to use.
+**Nope,** You only need to install the languages you want to use.
 
 Polyglot is a **wrapper tool** - it uses your system's installed compilers and interpreters. It doesn't bundle them.
 
@@ -54,24 +55,28 @@ sudo dnf install python3 gcc nodejs  # Example
 
 When you try to run code in a language that's not installed, Polyglot will offer to install it for you.
 
-See [AUTO_UPDATE.md](docs/AUTO_UPDATE.md) for details.
 
 ### Can Polyglot auto-install missing languages?
 
-**Yes!** Use the `polyglot install` command or let Polyglot prompt you when a language is missing.
+**Yes!** Polyglot will prompt you to install any missing toolchain when you try to run a file. You can also install manually with `polyglot install <language>`.
 
-**Current behavior:**
 ```bash
 $ polyglot run hello.py
-Error: python3 not found
+⚠️  Python not found in your system
+
+Polyglot can install Python for you:
+  • Installation method: System package manager (dnf)
+  • Package: python3
+  • Will be installed system-wide (available to all programs)
+  • Requires: sudo password
+
+Install Python now? [Y/n]
 ```
 
-**Future behavior (planned):**
+Polyglot detects your system's package manager (apt, dnf, brew, pacman, zypper, apk) and installs the correct package automatically. Alternatively, install manually:
+
 ```bash
-$ polyglot run hello.py
-⚠️  Python not found. Download? [Y/n] y
-📦 Downloading Python 3.12... ✓
-🚀 Running hello.py...
+polyglot install python
 ```
 
 ### How do I install language toolchains?
@@ -117,7 +122,8 @@ polyglot run hello.c
 ### How do I pass arguments to my program?
 
 ```bash
-polyglot run script.py --args arg1,arg2,arg3
+polyglot run script.py --args hello --args world
+polyglot run script.py --args "hello world"
 ```
 
 ### How do I suppress Polyglot's messages?
@@ -160,10 +166,9 @@ Polyglot automatically:
 
 ```bash
 $ polyglot run hello.c
-Detected: C
-Compiling: C hello.c
-Compilation successful
-Executing: C hello.c
+ℹ Detected: C
+→ Compiling... ✓
+→ Executing: ./hello
 Hello from C!
 # Binary automatically cleaned up
 ```
@@ -216,7 +221,7 @@ which python3  # Shows which Python Polyglot will use
 
 ### How big is the Polyglot binary?
 
-About 9MB. It's a single, self-contained binary with no dependencies (except the language toolchains you want to use).
+About 13MB. It's a single, self-contained binary with no dependencies (except the language toolchains you want to use).
 
 ### Is Polyglot fast?
 
@@ -241,9 +246,8 @@ Set one of the supported environment variables before running Polyglot:
 - **OpenAI:** `export OPENAI_API_KEY=your_key`
 - **Groq:** `export GROQ_API_KEY=your_key`
 - **Anthropic:** `export ANTHROPIC_API_KEY=your_key`
-- **GitHub:** `export GITHUB_TOKEN=your_token`
 
-If more than one key is present, specify the provider with `--provider <gemini|openai|groq|anthropic|github>`.
+If more than one key is present, specify the provider with `--provider <gemini|openai|groq|anthropic>`.
 
 ### How to use Self‑Correct
 
@@ -263,14 +267,23 @@ The command runs the program, and if a syntax error is detected, Polyglot sends 
 - Gemini (default)
 - OpenAI
 - Groq
-- Anthropic
-- GitHub
 
 ### Limitations
 
 - Only syntax/file‑level errors are auto‑corrected.
 - The feature is opt‑in; without `--self-correct` the program runs normally.
 - Provider support beyond Gemini is currently a stub and will return “not yet implemented” until fully wired.
+
+### How do I enable the other providers?
+
+Each provider requires a specific environment variable:
+
+| Provider | Env Var | Notes |
+|----------|---------|-------|
+| Gemini | `GEMINI_API_KEY` | Fully implemented (gemini-2.5-flash) |
+| OpenAI | `OPENAI_API_KEY` | Not yet implemented |
+| Groq | `GROQ_API_KEY` | Not yet implemented |
+| Anthropic | `ANTHROPIC_API_KEY` | Not yet implemented |
 
 
 
@@ -326,14 +339,14 @@ The command runs the program, and if a syntax error is detected, Polyglot sends 
 
 ### How do I add a new language?
 
-It takes about 15 minutes! See [GETTING_STARTED.md](GETTING_STARTED.md) for a step-by-step tutorial.
+It takes about 15 minutes! See [GETTING_STARTED.md](docs/development/GETTING_STARTED.md) for a step-by-step tutorial.
 
 Basic steps:
-1. Add language type to `pkg/types/types.go`
-2. Add detection to `internal/detector/detector.go`
-3. Create handler in `internal/language/<lang>.go`
-4. Register in `internal/language/registry.go`
-5. Add test fixture
+1. Add language constant to `pkg/types/types.go` (in the `Language` enum and `LanguageInfo` registry)
+2. Create handler in `internal/language/<lang>.go`
+3. Register in `internal/language/registry.go`
+4. Add compile-flag detector in `internal/flags/<lang>.go` (if applicable)
+5. Add test for extension detection
 6. Update docs
 
 ### Can I contribute?
@@ -348,7 +361,7 @@ Good first issues:
 
 ### How is the project organized?
 
-See [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) for a complete overview.
+See [PROJECT_STRUCTURE.md](docs/development/PROJECT_STRUCTURE.md) for a complete overview.
 
 ---
 
@@ -423,7 +436,7 @@ Probably! Check the [ROADMAP.md](ROADMAP.md) or open an issue to request it.
 - 📖 Read the [Quick Start Guide](docs/QUICKSTART.md)
 - 💬 Open an [Issue](https://github.com/velo4705/polyglot/issues)
 - 📚 Check [Examples](docs/EXAMPLES.md)
-- 🎯 See the [Demo](DEMO.md)
+- 🎯 See the [Demo](docs/development/DEMO.md)
 
 ### How do I report a bug?
 

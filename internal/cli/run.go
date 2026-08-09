@@ -29,7 +29,7 @@ var (
 	lang            string
 	sandboxMode     bool
 	selfCorrect     bool
-	provider        string // LLM provider name (gemini|openai|groq|anthropic|github)
+	provider        string // LLM provider name (gemini|openai|groq|anthropic)
 	compileFlagsStr string // raw --compile-flags value
 )
 
@@ -49,7 +49,7 @@ func init() {
 	runCmd.Flags().BoolVar(&jsonOutput, "json", false, "Output results as JSON")
 	runCmd.Flags().StringVar(&lang, "lang", "", "Language name (required when reading from stdin)")
 	runCmd.Flags().BoolVar(&sandboxMode, "sandbox", false, "Enable sandboxed execution (enforces memory/CPU/time limits)")
-	runCmd.Flags().StringVar(&provider, "provider", "", "Specify LLM provider (gemini|openai|groq|anthropic|github)")
+	runCmd.Flags().StringVar(&provider, "provider", "", "Specify LLM provider (gemini|openai|groq|anthropic)")
 	runCmd.Flags().BoolVar(&selfCorrect, "self-correct", false, "Enable LLM-based self-correction on errors")
 	runCmd.Flags().StringVar(&compileFlagsStr, "compile-flags", "", "Extra compiler flags (e.g., --compile-flags \"-O3 -march=native\")")
 }
@@ -286,7 +286,6 @@ func runFile(cmd *cobra.Command, cmdArgs []string) error {
 				"openai":    "OPENAI_API_KEY",
 				"groq":      "GROQ_API_KEY",
 				"anthropic": "ANTHROPIC_API_KEY",
-				"github":    "GITHUB_TOKEN",
 			}
 			// Determine which provider to use
 			var selProvider string
@@ -379,6 +378,28 @@ func getCommandForLanguage(language string) string {
 		"TypeScript": "ts-node",
 		"R":          "Rscript",
 		"Julia":      "julia",
+		"Brainfuck":  "bf",
+		"Fortran":    "gfortran",
+		"Pascal":     "fpc",
+		"Ada":        "gnatmake",
+		"COBOL":      "cobc",
+		"Scheme":     "guile",
+		"Common Lisp": "sbcl",
+		"Forth":      "gforth",
+		"Prolog":     "swipl",
+		"Tcl":        "tclsh",
+		"Clojure":    "clojure",
+		"Gleam":      "gleam",
+		"Elm":        "elm",
+		"PureScript": "spago",
+		"Roc":        "roc",
+		"V":          "v",
+		"Odin":       "odin",
+		"NASM":       "nasm",
+		"GAS":        "gcc",
+		"ARM Assembly": "arm-linux-gnueabi-gcc",
+		"MIPS Assembly": "mips-linux-gnu-gcc",
+		"RISC-V Assembly": "riscv64-linux-gnu-gcc",
 	}
 	return commandMap[language]
 }
@@ -402,8 +423,55 @@ func getCompileCommand(handler types.LanguageHandler, filename string) string {
 		return fmt.Sprintf("crystal build %s", filename)
 	case "D":
 		return fmt.Sprintf("dmd %s", filename)
+	case "Fortran":
+		return fmt.Sprintf("gfortran %s -o %s", filename, getOutputName(filename))
+	case "Pascal":
+		return fmt.Sprintf("fpc %s", filename)
+	case "Ada":
+		return fmt.Sprintf("gnatmake %s", filename)
+	case "COBOL":
+		return fmt.Sprintf("cobc %s -o %s", filename, getOutputName(filename))
+	case "Haskell":
+		return fmt.Sprintf("ghc %s -o %s", filename, getOutputName(filename))
+	case "OCaml":
+		return fmt.Sprintf("ocamlc %s -o %s", filename, getOutputName(filename))
+	case "Erlang":
+		return fmt.Sprintf("erlc %s", filename)
+	case "Kotlin":
+		return fmt.Sprintf("kotlinc %s -include-runtime -d %s", filename, getOutputName(filename)+".jar")
+	case "Scala":
+		return fmt.Sprintf("scala %s", filename)
+	case "Swift":
+		return fmt.Sprintf("swiftc %s -o %s", filename, getOutputName(filename))
+	case "Dart":
+		return fmt.Sprintf("dart compile %s -o %s", filename, getOutputName(filename))
+	case "Gleam":
+		return fmt.Sprintf("gleam build %s", filename)
+	case "Elm":
+		return fmt.Sprintf("elm make %s --output %s", filename, getOutputName(filename))
+	case "PureScript":
+		return fmt.Sprintf("spago build")
+	case "Roc":
+		return fmt.Sprintf("roc build %s", filename)
+	case "V":
+		return fmt.Sprintf("v -o %s %s", getOutputName(filename), filename)
+	case "Odin":
+		return fmt.Sprintf("odin build %s -out:%s", filename, getOutputName(filename))
+	case "NASM":
+		return fmt.Sprintf("nasm %s -f elf64 -o %s.o", filename, getOutputName(filename))
+	case "GAS":
+		return fmt.Sprintf("as %s -o %s.o", filename, getOutputName(filename))
+	case "ARM Assembly":
+		return fmt.Sprintf("arm-linux-gnueabi-gcc %s -o %s", filename, getOutputName(filename))
+	case "MIPS Assembly":
+		return fmt.Sprintf("mips-linux-gnu-gcc %s -o %s", filename, getOutputName(filename))
+	case "RISC-V Assembly":
+		return fmt.Sprintf("riscv64-linux-gnu-gcc %s -o %s", filename, getOutputName(filename))
 	default:
-		return "unknown"
+		if handler.NeedsCompilation() {
+			return fmt.Sprintf("compile %s", filename)
+		}
+		return filename
 	}
 }
 
@@ -427,6 +495,50 @@ func getRunCommand(handler types.LanguageHandler, filename string, args []string
 		cmdStr = fmt.Sprintf("lua %s", filename)
 	case "Shell":
 		cmdStr = fmt.Sprintf("bash %s", filename)
+	case "Elixir":
+		cmdStr = fmt.Sprintf("elixir %s", filename)
+	case "Clojure":
+		cmdStr = fmt.Sprintf("clojure %s", filename)
+	case "Groovy":
+		cmdStr = fmt.Sprintf("groovy %s", filename)
+	case "R":
+		cmdStr = fmt.Sprintf("Rscript %s", filename)
+	case "Julia":
+		cmdStr = fmt.Sprintf("julia %s", filename)
+	case "Brainfuck":
+		cmdStr = fmt.Sprintf("bf %s", filename)
+	case "F#":
+		cmdStr = fmt.Sprintf("dotnet %s", filename)
+	case "Scheme":
+		cmdStr = fmt.Sprintf("guile %s", filename)
+	case "Common Lisp":
+		cmdStr = fmt.Sprintf("sbcl --script %s", filename)
+	case "Forth":
+		cmdStr = fmt.Sprintf("gforth %s", filename)
+	case "Prolog":
+		cmdStr = fmt.Sprintf("swipl %s", filename)
+	case "Tcl":
+		cmdStr = fmt.Sprintf("tclsh %s", filename)
+	case "PureScript":
+		cmdStr = fmt.Sprintf("spago run %s", filename)
+	case "Zig":
+		cmdStr = fmt.Sprintf("zig run %s", filename)
+	case "Crystal":
+		cmdStr = fmt.Sprintf("crystal run %s", filename)
+	case "Kotlin":
+		cmdStr = fmt.Sprintf("kotlin %s", filename)
+	case "Scala":
+		cmdStr = fmt.Sprintf("scala %s", filename)
+	case "Swift":
+		cmdStr = fmt.Sprintf("swift %s", filename)
+	case "Dart":
+		cmdStr = fmt.Sprintf("dart %s", filename)
+	case "TypeScript":
+		cmdStr = fmt.Sprintf("ts-node %s", filename)
+	case "Roc":
+		cmdStr = fmt.Sprintf("roc %s", filename)
+	case "Elm":
+		cmdStr = fmt.Sprintf("node %s", getOutputName(filename))
 	default:
 		if handler.NeedsCompilation() {
 			cmdStr = fmt.Sprintf("./%s", getOutputName(filename))

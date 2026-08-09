@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/velo4705/polyglot/internal/ui"
 	"github.com/velo4705/polyglot/internal/updater"
+	"github.com/velo4705/polyglot/pkg/version"
 )
 
 var (
@@ -32,7 +33,7 @@ If installed via a package manager (Homebrew, APT), it will use that instead.`,
   # Only check for updates without installing
   polyglot update --check`,
 	Run: func(cmd *cobra.Command, args []string) {
-		u := updater.New(version, false)
+		u := updater.New(version.Version, false)
 
 		// Apply channel selection
 		if channel == "beta" {

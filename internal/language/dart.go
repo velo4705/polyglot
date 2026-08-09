@@ -25,8 +25,10 @@ func (h *DartHandler) NeedsCompilation() bool {
 	return false
 }
 
-func (h *DartHandler) Compile(source string, output string) error {
-	cmd := exec.Command("dart", "compile", "exe", source, "-o", output)
+func (h *DartHandler) Compile(source string, output string, extraFlags []string) error {
+	cmdArgs := append([]string{"compile", "exe"}, extraFlags...)
+	cmdArgs = append(cmdArgs, source, "-o", output)
+	cmd := exec.Command("dart", cmdArgs...)
 	return cmd.Run()
 }
 

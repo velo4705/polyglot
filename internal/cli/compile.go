@@ -17,6 +17,10 @@ var compileCmd = &cobra.Command{
 	RunE:  compileFile,
 }
 
+func init() {
+	compileCmd.Flags().StringVar(&compileFlagsStr, "compile-flags", "", "Extra compiler flags (e.g., --compile-flags \"-O3 -march=native\")")
+}
+
 func compileFile(cmd *cobra.Command, cmdArgs []string) error {
 	filename := cmdArgs[0]
 
@@ -43,5 +47,5 @@ func compileFile(cmd *cobra.Command, cmdArgs []string) error {
 
 	// Compile
 	exec := executor.New(verbose, quiet)
-	return exec.Compile(handler, filename)
+	return exec.Compile(handler, filename, parseCompileFlags())
 }

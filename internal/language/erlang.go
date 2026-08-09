@@ -27,8 +27,9 @@ func (h *ErlangHandler) NeedsCompilation() bool {
 	return true
 }
 
-func (h *ErlangHandler) Compile(source string, output string) error {
-	cmd := exec.Command("erlc", source)
+func (h *ErlangHandler) Compile(source string, output string, extraFlags []string) error {
+	cmdArgs := append(extraFlags, source)
+	cmd := exec.Command("erlc", cmdArgs...)
 	output_bytes, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("compilation failed: %s", string(output_bytes))

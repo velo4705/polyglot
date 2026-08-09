@@ -35,6 +35,12 @@ sudo mv polyglot /usr/local/bin/
 | `--verbose` | `-v` | Detailed output | `polyglot run -v hello.py` |
 | `--quiet` | `-q` | Silent mode | `polyglot run -q hello.py` |
 | `--args` | | Pass arguments | `polyglot run script.py --args a,b,c` |
+| `--compile-flags` | | Compiler flags | `polyglot run hello.cpp --compile-flags "-O3"` |
+| `--self-correct` | | LLM error correction | `polyglot run broken.py --self-correct` |
+| `--dry-run` | | Preview only | `polyglot run --dry-run hello.c` |
+| `--lang` | | Force language (stdin) | `polyglot run --lang Python` |
+| `--sandbox` | | Sandbox execution | `polyglot run --sandbox hello.sh` |
+| `--json` | | JSON output | `polyglot run --json hello.py` |
 | `--help` | `-h` | Show help | `polyglot run --help` |
 
 ## Supported Languages
@@ -57,10 +63,43 @@ sudo mv polyglot /usr/local/bin/
 | Nim | `.nim` | `nim c` | Compiled |
 | Crystal | `.cr` | `crystal run` | Compiled* |
 | D | `.d` | `dmd` | Compiled |
+| Swift | `.swift` | `swift` | Compiled* |
+| Kotlin | `.kt` `.kts` | `kotlinc` | Compiled* |
+| Scala | `.scala` | `scala` | Compiled* |
+| Haskell | `.hs` | `ghc` | Compiled* |
+| OCaml | `.ml` `.mli` | `ocaml` | Compiled* |
+| F# | `.fs` `.fsx` | `fsharp` | Compiled* |
+| TypeScript | `.ts` | `ts-node` | Compiled* |
+| Dart | `.dart` | `dart` | Compiled* |
+| Elixir | `.ex` `.exs` | `elixir` | Interpreted |
+| Erlang | `.erl` | `escript` | Interpreted |
+| Groovy | `.groovy` `.gvy` | `groovy` | Interpreted |
+| R | `.r` `.R` | `Rscript` | Interpreted |
+| Julia | `.jl` | `julia` | Interpreted |
+| Brainfuck | `.bf` `.b` | interpreter | Interpreted |
+| Fortran | `.f` `.f90` `.f95` `.f03` `.f08` `.for` `.fpp` | `gfortran` | Compiled |
+| Pascal | `.pas` `.pp` `.lpr` `.dpr` | `fpc` | Compiled |
+| Ada | `.adb` `.ads` | `gnatmake` | Compiled |
+| COBOL | `.cob` `.cbl` | `cobc` | Compiled |
+| Scheme | `.scm` `.ss` | `guile` | Interpreted |
+| Common Lisp | `.lisp` `.lsp` `.cl` `.l` | `sbcl --script` | Interpreted |
+| Forth | `.fth` `.forth` | `gforth` | Interpreted |
+| Prolog | `.pro` `.prolog` | `swipl` | Interpreted |
+| Tcl | `.tcl` `.tk` | `tclsh` | Interpreted |
+| Clojure | `.clj` `.cljs` `.cljc` `.edn` | `clojure` | Interpreted |
+| Gleam | `.gleam` | `gleam run` | Compiled* |
+| Elm | `.elm` | `elm make` | Compiled |
+| PureScript | `.purs` | `spago run` | Compiled* |
+| Roc | `.roc` | `roc run` | Compiled* |
+| V | `.v` | `v` | Compiled |
+| Odin | `.odin` | `odin build` | Compiled |
+| NASM | `.asm` `.nasm` | `nasm + ld` | Compiled |
+| GAS | `.s` `.S` | `gcc` | Compiled |
+| ARM Assembly | `.arm` | `arm-linux-gnueabi-gcc` | Compiled |
+| MIPS Assembly | `.mips` | `mips-linux-gnu-gcc` | Compiled |
+| RISC-V Assembly | `.riscv` | `riscv64-linux-gnu-gcc` | Compiled |
 
-*Uses integrated compile+run command
-
-**Total: 16 languages supported!**
+**Total: 51 languages supported!**
 
 ## Common Usage
 
@@ -248,7 +287,7 @@ chmod +r file.py
 
 ## Version
 
-**Current**: 1.0.1  
+**Current**: v1.3.0  
 **Milestone**: Production Ready with Auto-Update  
 **Status**: Production Ready ✅
 

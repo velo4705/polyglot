@@ -24,7 +24,7 @@ func (h *PerlHandler) NeedsCompilation() bool {
 	return false
 }
 
-func (h *PerlHandler) Compile(source string, output string) error {
+func (h *PerlHandler) Compile(source string, output string, extraFlags []string) error {
 	return nil
 }
 

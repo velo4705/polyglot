@@ -25,8 +25,10 @@ func (h *GoHandler) NeedsCompilation() bool {
 	return false
 }
 
-func (h *GoHandler) Compile(source string, output string) error {
-	cmd := exec.Command("go", "build", "-o", output, source)
+func (h *GoHandler) Compile(source string, output string, extraFlags []string) error {
+	cmdArgs := append([]string{"build"}, extraFlags...)
+	cmdArgs = append(cmdArgs, "-o", output, source)
+	cmd := exec.Command("go", cmdArgs...)
 	return cmd.Run()
 }
 

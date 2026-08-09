@@ -25,8 +25,9 @@ func (h *SwiftHandler) NeedsCompilation() bool {
 	return false
 }
 
-func (h *SwiftHandler) Compile(source string, output string) error {
-	cmd := exec.Command("swiftc", source, "-o", output)
+func (h *SwiftHandler) Compile(source string, output string, extraFlags []string) error {
+	cmdArgs := append(extraFlags, source, "-o", output)
+	cmd := exec.Command("swiftc", cmdArgs...)
 	return cmd.Run()
 }
 

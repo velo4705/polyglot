@@ -6,13 +6,12 @@ import (
 
 	"github.com/velo4705/polyglot/internal/cli"
 	"github.com/velo4705/polyglot/internal/updater"
+	"github.com/velo4705/polyglot/pkg/version"
 )
-
-const version = "1.0.1"
 
 func main() {
 	// Check for updates in background (non-blocking)
-	u := updater.New(version, true)
+	u := updater.New(version.Version, true)
 	u.CheckForUpdatesInBackground()
 
 	// Execute CLI

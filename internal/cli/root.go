@@ -5,9 +5,11 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "polyglot",
-	Short: "Universal compiler and interpreter wrapper",
-	Long:  `Polyglot detects programming languages and executes them with the appropriate toolchain.`,
+	Use:           "polyglot",
+	Short:         "Universal compiler and interpreter wrapper",
+	Long:          `Polyglot detects programming languages and executes them with the appropriate toolchain.`,
+	SilenceErrors: true,
+	SilenceUsage:  true,
 }
 
 func Execute() error {

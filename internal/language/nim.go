@@ -26,8 +26,10 @@ func (h *NimHandler) NeedsCompilation() bool {
 	return true
 }
 
-func (h *NimHandler) Compile(source string, output string) error {
-	cmd := exec.Command("nim", "c", "-o:"+output, source)
+func (h *NimHandler) Compile(source string, output string, extraFlags []string) error {
+	cmdArgs := append([]string{"c"}, extraFlags...)
+	cmdArgs = append(cmdArgs, "-o:"+output, source)
+	cmd := exec.Command("nim", cmdArgs...)
 	output_bytes, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("compilation failed: %s", string(output_bytes))

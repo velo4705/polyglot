@@ -27,8 +27,9 @@ func (h *JavaHandler) NeedsCompilation() bool {
 	return true
 }
 
-func (h *JavaHandler) Compile(source string, output string) error {
-	cmd := exec.Command("javac", source)
+func (h *JavaHandler) Compile(source string, output string, extraFlags []string) error {
+	cmdArgs := append(extraFlags, source)
+	cmd := exec.Command("javac", cmdArgs...)
 	output_bytes, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("compilation failed: %s", string(output_bytes))

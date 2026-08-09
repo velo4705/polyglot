@@ -25,8 +25,9 @@ func (h *TypeScriptHandler) NeedsCompilation() bool {
 	return false
 }
 
-func (h *TypeScriptHandler) Compile(source string, output string) error {
-	cmd := exec.Command("tsc", source)
+func (h *TypeScriptHandler) Compile(source string, output string, extraFlags []string) error {
+	cmdArgs := append(extraFlags, source)
+	cmd := exec.Command("tsc", cmdArgs...)
 	return cmd.Run()
 }
 

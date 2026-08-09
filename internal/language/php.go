@@ -24,7 +24,7 @@ func (h *PHPHandler) NeedsCompilation() bool {
 	return false
 }
 
-func (h *PHPHandler) Compile(source string, output string) error {
+func (h *PHPHandler) Compile(source string, output string, extraFlags []string) error {
 	// PHP doesn't need compilation
 	return nil
 }

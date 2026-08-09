@@ -24,7 +24,7 @@ func (h *JavaScriptHandler) NeedsCompilation() bool {
 	return false
 }
 
-func (h *JavaScriptHandler) Compile(source string, output string) error {
+func (h *JavaScriptHandler) Compile(source string, output string, extraFlags []string) error {
 	// JavaScript doesn't need compilation
 	return nil
 }

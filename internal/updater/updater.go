@@ -20,7 +20,11 @@ const (
 	githubBetaURL   = "https://api.github.com/repos/velo4705/polyglot/releases"
 	updateCheckFile = ".polyglot/last_update_check"
 	checkInterval   = 24 * time.Hour
+	httpTimeout     = 30 * time.Second
 )
+
+// httpClient is shared across all HTTP requests in this package.
+var httpClient = &http.Client{Timeout: httpTimeout}
 
 // Release represents a GitHub release
 type Release struct {
@@ -68,7 +72,7 @@ func (u *Updater) CheckForUpdates() (*Release, bool, error) {
 
 	if u.channel == "beta" {
 		// Fetch list of all releases and pick the first pre-release or latest
-		resp, err := http.Get(githubBetaURL)
+		resp, err := httpClient.Get(githubBetaURL)
 		if err != nil {
 			return nil, false, fmt.Errorf("failed to check for updates: %w", err)
 		}
@@ -90,7 +94,7 @@ func (u *Updater) CheckForUpdates() (*Release, bool, error) {
 		release = releases[0]
 	} else {
 		// Stable channel: latest non-pre-release
-		resp, err := http.Get(githubAPIURL)
+		resp, err := httpClient.Get(githubAPIURL)
 		if err != nil {
 			return nil, false, fmt.Errorf("failed to check for updates: %w", err)
 		}
@@ -310,7 +314,7 @@ func (u *Updater) getBinaryName() string {
 
 // downloadBinary downloads a binary to a temporary file
 func (u *Updater) downloadBinary(url string) (string, error) {
-	resp, err := http.Get(url)
+	resp, err := httpClient.Get(url)
 	if err != nil {
 		return "", err
 	}

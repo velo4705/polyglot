@@ -4,17 +4,15 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"github.com/velo4705/polyglot/pkg/version"
 )
-
-const version = "1.2.0"
-const milestone = "UX Polish - Shell Completions, Stdin Support, JSON Output"
 
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print version information",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("Polyglot v%s\n", version)
-		fmt.Printf("%s\n", milestone)
+		fmt.Printf("Polyglot v%s\n", version.Version)
+		fmt.Printf("%s\n", version.Milestone)
 		fmt.Println("Universal compiler and interpreter wrapper")
 	},
 }

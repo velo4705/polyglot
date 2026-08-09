@@ -25,8 +25,9 @@ func (h *KotlinHandler) NeedsCompilation() bool {
 	return false
 }
 
-func (h *KotlinHandler) Compile(source string, output string) error {
-	cmd := exec.Command("kotlinc", source, "-include-runtime", "-d", output+".jar")
+func (h *KotlinHandler) Compile(source string, output string, extraFlags []string) error {
+	cmdArgs := append(extraFlags, source, "-include-runtime", "-d", output+".jar")
+	cmd := exec.Command("kotlinc", cmdArgs...)
 	return cmd.Run()
 }
 

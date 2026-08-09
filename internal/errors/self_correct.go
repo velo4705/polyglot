@@ -10,10 +10,14 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/velo4705/polyglot/internal/installer"
 	"github.com/velo4705/polyglot/internal/ui"
 )
+
+// httpClient is shared across all HTTP requests in this package.
+var httpClient = &http.Client{Timeout: 30 * time.Second}
 
 // ClassifyError checks if the error message is due to a missing library/dependency.
 // If it is, it returns true and a one-line distribution-specific instruction to install it.
@@ -336,7 +340,7 @@ Return ONLY the corrected, raw code. Do NOT include markdown code blocks, explan
 
 	// Send POST request
 	apiURL := "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + apiKey
-	resp, err := http.Post(apiURL, "application/json", bytes.NewBuffer(jsonData))
+	resp, err := httpClient.Post(apiURL, "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
 		return fmt.Errorf("calling gemini api: %w", err)
 	}

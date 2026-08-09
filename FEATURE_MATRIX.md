@@ -4,19 +4,21 @@ Complete feature comparison across versions.
 
 ## Version Comparison
 
-| Feature | v0.1.0 | v0.5.0 | v1.0.0 | v1.0.1 |
-|---------|--------|--------|--------|--------|
-| **Languages** | 5 | 30 | 30 | 30 |
-| **CLI Commands** | 5 | 7 | 8 | 9 |
-| **Auto-Install** | ❌ | ✅ | ✅ | ✅ |
-| **Configuration** | ❌ | ✅ | ✅ | ✅ |
-| **Watch Mode** | ❌ | ✅ | ✅ | ✅ |
-| **Colored Output** | ❌ | ✅ | ✅ | ✅ |
-| **Auto-Update** | ❌ | ❌ | ❌ | ✅ |
-| **Package Managers** | ❌ | ❌ | ✅ | ✅ |
-| **Docker Support** | ❌ | ❌ | ✅ | ✅ |
-| **Documentation** | Basic | Good | Complete | Complete+ |
-| **Test Coverage** | 60% | 75% | 85%+ | 85%+ |
+| Feature | v0.1.0 | v0.5.0 | v1.0.0 | v1.0.1 | v1.3.0 |
+|---------|--------|--------|--------|--------|--------|
+| **Languages** | 5 | 30 | 30 | 30 | 51 |
+| **CLI Commands** | 5 | 7 | 8 | 9 | 9 |
+| **Auto-Install** | ❌ | ✅ | ✅ | ✅ | ✅ |
+| **Configuration** | ❌ | ✅ | ✅ | ✅ | ✅ |
+| **Watch Mode** | ❌ | ✅ | ✅ | ✅ | ✅ |
+| **Colored Output** | ❌ | ✅ | ✅ | ✅ | ✅ |
+| **Auto-Update** | ❌ | ❌ | ❌ | ✅ | ✅ |
+| **Package Managers** | ❌ | ❌ | ✅ | ✅ | ✅ |
+| **Docker Support** | ❌ | ❌ | ✅ | ✅ | ✅ |
+| **Compiler Flags** | ❌ | ❌ | ❌ | ❌ | ✅ |
+| **Self-Correction** | ❌ | ❌ | ❌ | ❌ | ✅ |
+| **Documentation** | Basic | Good | Complete | Complete+ | Complete+ |
+| **Test Coverage** | 60% | 75% | 85%+ | 85%+ | 85%+ |
 
 ## Feature Details
 
@@ -34,24 +36,25 @@ Complete feature comparison across versions.
 
 | Category | Count | Languages | Since |
 |----------|-------|-----------|-------|
-| Interpreted | 16 | Python, JS, Ruby, PHP, Perl, Lua, Shell, Elixir, Erlang, Groovy, R, Julia, Haskell, OCaml, TypeScript, Dart | v0.2.0 |
-| Compiled | 14 | Go, Java, C, C++, Rust, Zig, Nim, Crystal, D, F#, Kotlin, Scala, Swift | v0.2.0 |
-| Esoteric | 1 | Brainfuck | v0.2.0 |
-| **Total** | **30** | | |
+| Interpreted | 24 | Python, JavaScript, Ruby, PHP, Perl, Lua, Shell, TypeScript, Dart, Elixir, Erlang, Groovy, R, Julia, Scheme, Common Lisp, Forth, Prolog, Tcl, Clojure, Gleam, PureScript, Roc, Brainfuck | v0.2.0 |
+| Compiled | 22 | Go, Java, C, C++, Rust, Zig, Nim, Crystal, D, Swift, Kotlin, Scala, Haskell, OCaml, F#, Fortran, Pascal, Ada, COBOL, V, Odin, Elm | v0.2.0 |
+| Assembly | 5 | NASM, GAS, ARM Assembly, MIPS Assembly, RISC-V Assembly | v1.3.0 |
+| **Total** | **51** | | |
 
 ### CLI Commands
 
-| Command | Description | Since | Example |
-|---------|-------------|-------|---------|
-| `run` | Run a file | v0.1.0 | `polyglot run hello.py` |
-| `compile` | Compile without running | v0.1.0 | `polyglot compile main.c` |
-| `list` | List supported languages | v0.1.0 | `polyglot list` |
-| `check` | Check installed toolchains | v0.1.0 | `polyglot check` |
-| `version` | Show version | v0.1.0 | `polyglot version` |
-| `install` | Install toolchains | v0.3.0 | `polyglot install python` |
-| `config` | Manage configuration | v0.4.0 | `polyglot config show` |
-| `watch` | Auto-rerun on changes | v0.5.0 | `polyglot watch app.js` |
-| `update` | Update Polyglot | v1.0.1 | `polyglot update` |
+| Flag | Description | Since | Example |
+|------|-------------|-------|---------|
+| `-v, --verbose` | Show detailed output | v0.1.0 | `polyglot run -v hello.py` |
+| `-q, --quiet` | Silent mode | v0.1.0 | `polyglot run -q hello.py` |
+| `--args` | Pass program arguments | v0.1.0 | `polyglot run --args a,b,c hello.py` |
+| `--dry-run` | Preview without executing | v0.5.0 | `polyglot run --dry-run hello.c` |
+| `--lang` | Force language (stdin) | v1.1.0 | `polyglot run --lang Python` |
+| `--json` | JSON output | v1.1.0 | `polyglot run --json hello.py` |
+| `--sandbox` | Sandboxed execution | v1.3.0 | `polyglot run --sandbox hello.c` |
+| `--compile-flags` | Compiler flags override | v1.3.0 | `polyglot run --compile-flags "-O2" hello.c` |
+| `--self-correct` | LLM error correction | v1.3.0 | `polyglot run --self-correct broken.py` |
+| `--channel` | Update channel (beta) | v1.3.0 | `polyglot update --channel beta` |
 
 ### Configuration Features
 
@@ -154,7 +157,7 @@ Complete feature comparison across versions.
 - [ ] Configurable update interval
 - [ ] Update history tracking
 
-### Planned for v1.2.0
+### Planned for v1.3.0
 - [ ] Plugin system
 - [ ] Custom language plugins
 - [ ] Language-specific configuration
@@ -198,11 +201,11 @@ Complete feature comparison across versions.
 - **Total Files**: 70+
 
 ### Language Support
-- **Interpreted**: 16 languages
-- **Compiled**: 14 languages
-- **Esoteric**: 1 language
-- **Total**: 30 languages
-- **File Extensions**: 45+
+- **Interpreted**: 24 languages
+- **Compiled**: 22 languages
+- **Assembly**: 5 languages
+- **Total**: 51 languages
+- **File Extensions**: 60+
 
 ### Commands & Features
 - **CLI Commands**: 9
@@ -218,6 +221,6 @@ Complete feature comparison across versions.
 
 ---
 
-**Last Updated**: 2026-02-22  
-**Current Version**: v1.0.1  
+**Last Updated**: 2026-08-09  
+**Current Version**: v1.3.0  
 **Status**: Production Ready ✅

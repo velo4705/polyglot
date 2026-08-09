@@ -25,8 +25,9 @@ func (h *FSharpHandler) NeedsCompilation() bool {
 	return false
 }
 
-func (h *FSharpHandler) Compile(source string, output string) error {
-	cmd := exec.Command("fsharpc", source, "-o", output)
+func (h *FSharpHandler) Compile(source string, output string, extraFlags []string) error {
+	cmdArgs := append(extraFlags, source, "-o", output)
+	cmd := exec.Command("fsharpc", cmdArgs...)
 	return cmd.Run()
 }
 

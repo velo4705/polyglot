@@ -24,7 +24,7 @@ func (h *JuliaHandler) NeedsCompilation() bool {
 	return false
 }
 
-func (h *JuliaHandler) Compile(source string, output string) error {
+func (h *JuliaHandler) Compile(source string, output string, extraFlags []string) error {
 	return nil
 }
 

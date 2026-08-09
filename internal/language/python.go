@@ -24,7 +24,7 @@ func (h *PythonHandler) NeedsCompilation() bool {
 	return false
 }
 
-func (h *PythonHandler) Compile(source string, output string) error {
+func (h *PythonHandler) Compile(source string, output string, extraFlags []string) error {
 	// Python doesn't need compilation
 	return nil
 }

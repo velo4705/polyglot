@@ -24,7 +24,7 @@ func (h *RHandler) NeedsCompilation() bool {
 	return false
 }
 
-func (h *RHandler) Compile(source string, output string) error {
+func (h *RHandler) Compile(source string, output string, extraFlags []string) error {
 	return nil
 }
 

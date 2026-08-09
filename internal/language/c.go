@@ -26,8 +26,9 @@ func (h *CHandler) NeedsCompilation() bool {
 	return true
 }
 
-func (h *CHandler) Compile(source string, output string) error {
-	cmd := exec.Command("gcc", source, "-o", output)
+func (h *CHandler) Compile(source string, output string, extraFlags []string) error {
+	cmdArgs := append(extraFlags, source, "-o", output)
+	cmd := exec.Command("gcc", cmdArgs...)
 	output_bytes, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("compilation failed: %s", string(output_bytes))

@@ -98,7 +98,7 @@ func runWatchedFile(filename string, handler types.LanguageHandler, cfg *config.
 	startTime := time.Now()
 
 	exec := executor.NewWithConfig(verbose, quiet, cfg)
-	err := exec.Run(handler, filename, args)
+	err := exec.Run(handler, filename, args, parseCompileFlags())
 
 	duration := time.Since(startTime)
 

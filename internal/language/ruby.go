@@ -24,7 +24,7 @@ func (h *RubyHandler) NeedsCompilation() bool {
 	return false
 }
 
-func (h *RubyHandler) Compile(source string, output string) error {
+func (h *RubyHandler) Compile(source string, output string, extraFlags []string) error {
 	// Ruby doesn't need compilation
 	return nil
 }

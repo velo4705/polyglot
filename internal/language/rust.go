@@ -26,8 +26,9 @@ func (h *RustHandler) NeedsCompilation() bool {
 	return true
 }
 
-func (h *RustHandler) Compile(source string, output string) error {
-	cmd := exec.Command("rustc", source, "-o", output)
+func (h *RustHandler) Compile(source string, output string, extraFlags []string) error {
+	cmdArgs := append(extraFlags, source, "-o", output)
+	cmd := exec.Command("rustc", cmdArgs...)
 	output_bytes, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("compilation failed: %s", string(output_bytes))

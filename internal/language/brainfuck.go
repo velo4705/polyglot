@@ -24,7 +24,7 @@ func (h *BrainfuckHandler) NeedsCompilation() bool {
 	return false
 }
 
-func (h *BrainfuckHandler) Compile(source string, output string) error {
+func (h *BrainfuckHandler) Compile(source string, output string, extraFlags []string) error {
 	return nil
 }
 

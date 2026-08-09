@@ -25,8 +25,10 @@ func (h *ZigHandler) NeedsCompilation() bool {
 	return false
 }
 
-func (h *ZigHandler) Compile(source string, output string) error {
-	cmd := exec.Command("zig", "build-exe", source, "-femit-bin="+output)
+func (h *ZigHandler) Compile(source string, output string, extraFlags []string) error {
+	cmdArgs := append([]string{"build-exe"}, extraFlags...)
+	cmdArgs = append(cmdArgs, source, "-femit-bin="+output)
+	cmd := exec.Command("zig", cmdArgs...)
 	return cmd.Run()
 }
 

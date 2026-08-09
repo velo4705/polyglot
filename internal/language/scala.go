@@ -25,8 +25,9 @@ func (h *ScalaHandler) NeedsCompilation() bool {
 	return false
 }
 
-func (h *ScalaHandler) Compile(source string, output string) error {
-	cmd := exec.Command("scalac", source)
+func (h *ScalaHandler) Compile(source string, output string, extraFlags []string) error {
+	cmdArgs := append(extraFlags, source)
+	cmd := exec.Command("scalac", cmdArgs...)
 	return cmd.Run()
 }
 

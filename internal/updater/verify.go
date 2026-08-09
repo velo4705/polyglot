@@ -17,7 +17,7 @@ import (
 // for the "<binaryName>.sha256" asset).
 func VerifyChecksum(binaryPath, checksumURL string) error {
 	// Download checksum file
-	resp, err := http.Get(checksumURL)
+	resp, err := httpClient.Get(checksumURL)
 	if err != nil {
 		return fmt.Errorf("downloading checksum: %w", err)
 	}
@@ -66,7 +66,7 @@ func VerifyGPGSignature(binaryPath, signatureURL string) error {
 	}
 
 	// Download .asc signature to a temp file
-	resp, err := http.Get(signatureURL)
+	resp, err := httpClient.Get(signatureURL)
 	if err != nil {
 		return fmt.Errorf("downloading signature: %w", err)
 	}

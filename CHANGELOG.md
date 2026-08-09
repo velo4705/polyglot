@@ -5,6 +5,32 @@ All notable changes to Polyglot will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-08-09
+
+### Added
+- 21 new languages: Fortran, Pascal, Ada, COBOL, Scheme, Common Lisp, Forth, Prolog, Tcl, Clojure, Gleam, Elm, PureScript, Roc, V, Odin, NASM, GAS, ARM Assembly, MIPS Assembly, RISC-V Assembly
+- Assembly language support (NASM, GAS, ARM, MIPS, RISC-V)
+- `--compile-flags` CLI flag for manual compiler flag override
+- Auto-detection of compiler flags from source code patterns (C/C++: -std=c++17/20/23, -pthread, -lm, -fopenmp, etc.)
+- `--self-correct` flag properly registered (was dead code)
+
+### Fixed
+- Version constant single source of truth (`pkg/version/version.go`) — was duplicated in `main.go` (1.0.1) and `cli/version.go` (1.2.0)
+- `--self-correct` flag now registered with Cobra (was declared but never wired up)
+- HTTP client timeouts added (30s default) — `http.DefaultClient` had no timeout
+- Spinner data race fixed — `active` field changed to `atomic.Bool`
+- Spinner double-stop deadlock fixed — uses `select` with `default`
+- Duplicate error output fixed — `SilenceErrors: true` on root command
+
+### Changed
+- `LanguageHandler.Compile()` signature now accepts `extraFlags []string`
+- All compiled language handlers inject extraFlags into build commands
+- `pkg/types/types.go` refactored from giant switch statements to table-driven registry
+- Extension detection centralized in `types.FromExtension()` (was duplicated in `detector.go`)
+- `Language` type methods: `Name()`, `Extensions()`, `Type()` now use registry look up
+- Added `AllLanguages()`, `AllLanguageNames()`, `AllExtensions()` helpers to `pkg/types`
+- Added `Language.NeedsCompilation()` convenience method
+
 ## [1.0.1] - 2026-02-22
 
 ### Added - Auto-Update Feature
@@ -351,53 +377,3 @@ Polyglot is now production-ready with:
 
 ---
 
-## [Unreleased]
-
-### Planned for Milestone 2
-- Java support with compile + run workflow
-- C support with gcc
-- C++ support with g++
-- Rust support with rustc
-- Two-step compilation workflow
-- Automatic cleanup of build artifacts
-- Better error messages with suggestions
-
-### Planned for Milestone 3
-- Perl, Lua, Zig, Nim, Crystal, D support
-- Shell script support
-- Language version detection
-- Configurable compiler flags
-
-### Planned for Milestone 4
-- Esoteric language support (Brainfuck, Whitespace, etc.)
-- Functional language support (Haskell, OCaml, Erlang, Elixir)
-- JVM language support (Kotlin, Scala, Clojure)
-
-### Planned for Milestone 5
-- Configuration file support (~/.polyglot/config.yaml)
-- Custom language definitions
-- Per-project configuration
-- Environment variable support
-
-### Planned for Milestone 6
-- Watch mode for development
-- Colored output
-- Progress indicators
-- Better error messages with suggestions
-- Dry run mode
-
----
-
-## Version History
-
-- **v0.1.0** (2026-02-21) - Milestone 1: MVP with 5 languages
-- More versions coming soon...
-
----
-
-## Links
-
-- [GitHub Repository](https://github.com/velo4705/polyglot)
-- [Issue Tracker](https://github.com/velo4705/polyglot/issues)
-- [Roadmap](ROADMAP.md)
-- [Contributing](CONTRIBUTING.md)

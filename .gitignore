@@ -1,54 +1,17 @@
-# Internal planning docs
-ROADMAP.md
-SESSION_SUMMARY.md
-PRE_RELEASE_TEST_CHECKLIST.md
-
 # Binaries
 bin/
 /polyglot
 !cmd/polyglot/
-*.exe
-*.dll
-*.so
-*.dylib
 
 # Test binaries
 *.test
 
-# Output from tests
+# Test artifacts
 test/fixtures/*.out
 test/fixtures/hello
 test/fixtures/Hello
 test/fixtures/args
 test/fixtures/*.class
-
-# Compiled artifacts
-*.o
-*.a
-*.out
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-*.iml
-
-# OS
-.DS_Store
-Thumbs.db
-.Spotlight-V100
-.Trashes
-
-# Personal configuration (don't commit personal settings)
-.polyglot/config.yaml
-
-# Temporary files
-*.tmp
-*.temp
-*.log
-*.cache
 
 # Build artifacts
 dist/
@@ -63,66 +26,37 @@ build/
 coverage.txt
 coverage.html
 
-# Dependencies
-vendor/
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Personal configuration
+.polyglot/config.yaml
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+*.cache
+*.bak
 
 # Environment
 .env
 .env.local
 .env.*.local
 
-# Backup files
-*.bak
-*.backup
-*~
+# Vendor
+vendor/
 
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-*.egg-info/
-dist/
-build/
-
-# Node
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Rust
-target/
-Cargo.lock
-
-# Java
-*.class
-*.jar
-*.war
-
-# C/C++
-*.o
-*.obj
-*.exe
-*.out
-a.out
-
-# Editor backups
-*~
-.*.swp
-.*.swo
-
+# Planning docs
+ROADMAP.md
+SESSION_SUMMARY.md
+PRE_RELEASE_TEST_CHECKLIST.md
 CONTEXT_TRANSFER.md
-
-# Test artifacts
-test/
-tmp_test/
-*_test.go
-sandbox_test.py
-
-# Additional ignored test artifacts
-test/
-tmp_test/
-*_test.go
-sandbox_test.py

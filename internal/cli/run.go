@@ -11,6 +11,7 @@ import (
 	"github.com/velo4705/polyglot/internal/detector"
 	advisorpkg "github.com/velo4705/polyglot/internal/errors"
 	"github.com/velo4705/polyglot/internal/executor"
+	"github.com/velo4705/polyglot/internal/flags"
 	"github.com/velo4705/polyglot/internal/installer"
 	"github.com/velo4705/polyglot/internal/language"
 	"github.com/velo4705/polyglot/internal/output"
@@ -20,15 +21,16 @@ import (
 )
 
 var (
-	verbose     bool
-	quiet       bool
-	args        []string
-	dryRun      bool
-	jsonOutput  bool
-	lang        string
-	sandboxMode bool
-	selfCorrect bool
-	provider    string // LLM provider name (gemini|openai|groq|anthropic|github)
+	verbose         bool
+	quiet           bool
+	args            []string
+	dryRun          bool
+	jsonOutput      bool
+	lang            string
+	sandboxMode     bool
+	selfCorrect     bool
+	provider        string // LLM provider name (gemini|openai|groq|anthropic|github)
+	compileFlagsStr string // raw --compile-flags value
 )
 
 var runCmd = &cobra.Command{
@@ -48,7 +50,16 @@ func init() {
 	runCmd.Flags().StringVar(&lang, "lang", "", "Language name (required when reading from stdin)")
 	runCmd.Flags().BoolVar(&sandboxMode, "sandbox", false, "Enable sandboxed execution (enforces memory/CPU/time limits)")
 	runCmd.Flags().StringVar(&provider, "provider", "", "Specify LLM provider (gemini|openai|groq|anthropic|github)")
-	// Existing flag definitions remain unchanged
+	runCmd.Flags().BoolVar(&selfCorrect, "self-correct", false, "Enable LLM-based self-correction on errors")
+	runCmd.Flags().StringVar(&compileFlagsStr, "compile-flags", "", "Extra compiler flags (e.g., --compile-flags \"-O3 -march=native\")")
+}
+
+// parseCompileFlags splits the --compile-flags string by spaces.
+func parseCompileFlags() []string {
+	if compileFlagsStr == "" {
+		return nil
+	}
+	return strings.Fields(compileFlagsStr)
 }
 
 func runFile(cmd *cobra.Command, cmdArgs []string) error {
@@ -178,6 +189,11 @@ func runFile(cmd *cobra.Command, cmdArgs []string) error {
 		ui.Info("Handler: %s", handler.Name())
 
 		if handler.NeedsCompilation() {
+			// Detect compiler flags (auto-detect + config + CLI)
+			finalFlags := detectAndMergeFlags(handler, filename, cfg, parseCompileFlags())
+			if len(finalFlags) > 0 {
+				ui.Info("Compiler flags: %s", strings.Join(finalFlags, " "))
+			}
 			ui.Step("Would compile: %s", ui.Command(getCompileCommand(handler, filename)))
 		}
 
@@ -222,7 +238,7 @@ func runFile(cmd *cobra.Command, cmdArgs []string) error {
 
 	if jsonOutput {
 		startTime := time.Now()
-		outBytes, runErr := exec.RunBuffered(handler, filename, args)
+		outBytes, runErr := exec.RunBuffered(handler, filename, args, parseCompileFlags())
 		durationMs := time.Since(startTime).Milliseconds()
 
 		exitCode := 0
@@ -248,7 +264,7 @@ func runFile(cmd *cobra.Command, cmdArgs []string) error {
 		return output.PrintRun(os.Stdout, result)
 	}
 
-	runErr := exec.Run(handler, filename, args)
+	runErr := exec.Run(handler, filename, args, parseCompileFlags())
 	if runErr != nil {
 		stderrStr := runErr.Error()
 		if execErr, ok := runErr.(*executor.ExecutionError); ok {
@@ -318,7 +334,7 @@ func runFile(cmd *cobra.Command, cmdArgs []string) error {
 					return runErr
 				}
 				// Re-run the corrected file
-				return exec.Run(handler, filename, args)
+				return exec.Run(handler, filename, args, parseCompileFlags())
 			}
 			ui.Error("Self-correction for provider %s is not yet implemented", selProvider)
 			return runErr
@@ -436,4 +452,36 @@ func getOutputName(filename string) string {
 		}
 	}
 	return strings.TrimSuffix(filename, ext)
+}
+
+// detectAndMergeFlags merges auto-detected flags with CLI overrides.
+// Priority: auto-detect < CLI --compile-flags
+func detectAndMergeFlags(handler types.LanguageHandler, filename string, cfg *config.Config, cliFlags []string) []string {
+	var result []string
+	seen := make(map[string]bool)
+
+	addFlag := func(f string) {
+		if !seen[f] {
+			result = append(result, f)
+			seen[f] = true
+		}
+	}
+
+	// Layer 1: Auto-detect from source code
+	detector := flags.Get(handler.Name())
+	if detector != nil {
+		source, err := os.ReadFile(filename)
+		if err == nil {
+			for _, f := range detector.Detect(source) {
+				addFlag(f)
+			}
+		}
+	}
+
+	// Layer 2: CLI --compile-flags (highest priority, overrides)
+	for _, f := range cliFlags {
+		addFlag(f)
+	}
+
+	return result
 }

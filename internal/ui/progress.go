@@ -3,6 +3,7 @@ package ui
 import (
 	"fmt"
 	"strings"
+	"sync/atomic"
 	"time"
 )
 
@@ -11,7 +12,7 @@ type Spinner struct {
 	message string
 	frames  []string
 	index   int
-	active  bool
+	active  atomic.Bool
 	done    chan bool
 }
 
@@ -31,9 +32,9 @@ func (s *Spinner) Start() {
 		return
 	}
 
-	s.active = true
+	s.active.Store(true)
 	go func() {
-		for s.active {
+		for s.active.Load() {
 			select {
 			case <-s.done:
 				return
@@ -49,8 +50,11 @@ func (s *Spinner) Start() {
 
 // Stop stops the spinner
 func (s *Spinner) Stop() {
-	s.active = false
-	s.done <- true
+	s.active.Store(false)
+	select {
+	case s.done <- true:
+	default:
+	}
 	fmt.Print("\r" + strings.Repeat(" ", len(s.message)+10) + "\r")
 }
 

@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/velo4705/polyglot/internal/config"
+	"github.com/velo4705/polyglot/internal/flags"
 	"github.com/velo4705/polyglot/internal/ui"
 	"github.com/velo4705/polyglot/pkg/types"
 )
@@ -47,7 +48,7 @@ func NewWithConfig(verbose, quiet bool, cfg *config.Config) *Executor {
 	}
 }
 
-func (e *Executor) Run(handler types.LanguageHandler, filename string, args []string) error {
+func (e *Executor) Run(handler types.LanguageHandler, filename string, args []string, compileFlagsOverride []string) error {
 	// Check if language is enabled
 	if e.config != nil && !e.config.IsLanguageEnabled(string(handler.Name())) {
 		return fmt.Errorf("language %s is disabled in configuration", handler.Name())
@@ -66,7 +67,13 @@ func (e *Executor) Run(handler types.LanguageHandler, filename string, args []st
 			spinner.Start()
 		}
 
-		err := handler.Compile(filename, output)
+		// Detect and merge compiler flags
+		finalFlags := e.detectCompileFlags(handler, filename, compileFlagsOverride)
+		if !e.quiet && len(finalFlags) > 0 {
+			ui.Info("Compiler flags: %s", strings.Join(finalFlags, " "))
+		}
+
+		err := handler.Compile(filename, output, finalFlags)
 
 		if !e.quiet && !e.verbose {
 			spinner.Stop()
@@ -125,7 +132,7 @@ func (e *Executor) Run(handler types.LanguageHandler, filename string, args []st
 	return nil
 }
 
-func (e *Executor) Compile(handler types.LanguageHandler, filename string) error {
+func (e *Executor) Compile(handler types.LanguageHandler, filename string, compileFlagsOverride []string) error {
 	if !handler.NeedsCompilation() {
 		if !e.quiet {
 			fmt.Println("No compilation needed")
@@ -135,11 +142,14 @@ func (e *Executor) Compile(handler types.LanguageHandler, filename string) error
 
 	output := e.getOutputName(filename)
 
+	// Detect and merge compiler flags
+	finalFlags := e.detectCompileFlags(handler, filename, compileFlagsOverride)
+
 	if !e.quiet {
-		fmt.Printf("Compiling: %s %s -o %s\n", handler.Name(), filename, output)
+		fmt.Printf("Compiling: %s %s %s -o %s\n", handler.Name(), strings.Join(finalFlags, " "), filename, output)
 	}
 
-	if err := handler.Compile(filename, output); err != nil {
+	if err := handler.Compile(filename, output, finalFlags); err != nil {
 		return fmt.Errorf("compilation failed: %w", err)
 	}
 
@@ -151,14 +161,16 @@ func (e *Executor) Compile(handler types.LanguageHandler, filename string) error
 }
 
 // RunBuffered runs the program and captures output (used for --json mode).
-func (e *Executor) RunBuffered(handler types.LanguageHandler, filename string, args []string) ([]byte, error) {
+func (e *Executor) RunBuffered(handler types.LanguageHandler, filename string, args []string, compileFlagsOverride []string) ([]byte, error) {
 	if handler.NeedsCompilation() {
 		outputBin := e.getOutputName(filename)
 		spinner := ui.NewSpinner(fmt.Sprintf("Compiling %s", handler.Name()))
 		if !e.quiet && !e.verbose {
 			spinner.Start()
 		}
-		err := handler.Compile(filename, outputBin)
+		// Detect and merge compiler flags
+		finalFlags := e.detectCompileFlags(handler, filename, compileFlagsOverride)
+		err := handler.Compile(filename, outputBin, finalFlags)
 		if !e.quiet && !e.verbose {
 			spinner.Stop()
 		}
@@ -357,4 +369,37 @@ func (e *Executor) getCommand(handler types.LanguageHandler, filename string) st
 	default:
 		return handler.Name()
 	}
+}
+
+// detectCompileFlags reads the source file and merges auto-detected flags
+// with CLI overrides.
+// Priority: auto-detect < CLI --compile-flags
+func (e *Executor) detectCompileFlags(handler types.LanguageHandler, filename string, cliFlags []string) []string {
+	var result []string
+	seen := make(map[string]bool)
+
+	addFlag := func(f string) {
+		if !seen[f] {
+			result = append(result, f)
+			seen[f] = true
+		}
+	}
+
+	// Layer 1: Auto-detect from source code
+	detector := flags.Get(handler.Name())
+	if detector != nil {
+		source, err := os.ReadFile(filename)
+		if err == nil {
+			for _, f := range detector.Detect(source) {
+				addFlag(f)
+			}
+		}
+	}
+
+	// Layer 2: CLI --compile-flags (highest priority, overrides)
+	for _, f := range cliFlags {
+		addFlag(f)
+	}
+
+	return result
 }

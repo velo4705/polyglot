@@ -318,6 +318,22 @@ var Specs = map[string]VersionSpec{
 			return strings.TrimSpace(output)
 		},
 	},
+	"GAS": {
+		Command: "gcc",
+		Args:    []string{"--version"},
+		ParseFn: func(output string) string {
+			// first line, extract \d+\.\d+\.\d+ match
+			line := strings.SplitN(output, "\n", 2)[0]
+			return firstVersionMatch(line)
+		},
+	},
+	"Tcl": {
+		Command: "sh",
+		Args:    []string{"-c", "echo 'puts [info patchlevel]' | tclsh"},
+		ParseFn: func(output string) string {
+			return strings.TrimSpace(output)
+		},
+	},
 }
 
 // Get runs the version command for langName and returns the version string.

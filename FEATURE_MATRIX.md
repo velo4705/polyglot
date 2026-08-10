@@ -6,7 +6,7 @@ Complete feature comparison across versions.
 
 | Feature | v0.1.0 | v0.5.0 | v1.0.0 | v1.0.1 | v1.3.0 |
 |---------|--------|--------|--------|--------|--------|
-| **Languages** | 5 | 30 | 30 | 30 | 51 |
+| **Languages** | 5 | 30 | 30 | 30 | 50 |
 | **CLI Commands** | 5 | 7 | 8 | 9 | 9 |
 | **Auto-Install** | ❌ | ✅ | ✅ | ✅ | ✅ |
 | **Configuration** | ❌ | ✅ | ✅ | ✅ | ✅ |
@@ -37,9 +37,9 @@ Complete feature comparison across versions.
 | Category | Count | Languages | Since |
 |----------|-------|-----------|-------|
 | Interpreted | 24 | Python, JavaScript, Ruby, PHP, Perl, Lua, Shell, TypeScript, Dart, Elixir, Erlang, Groovy, R, Julia, Scheme, Common Lisp, Forth, Prolog, Tcl, Clojure, Gleam, PureScript, Roc, Brainfuck | v0.2.0 |
-| Compiled | 22 | Go, Java, C, C++, Rust, Zig, Nim, Crystal, D, Swift, Kotlin, Scala, Haskell, OCaml, F#, Fortran, Pascal, Ada, COBOL, V, Odin, Elm | v0.2.0 |
+| Compiled | 21 | Go, Java, C, C++, Rust, Zig, Nim, Crystal, D, Swift, Kotlin, Scala, Haskell, OCaml, Fortran, Pascal, Ada, COBOL, V, Odin, Elm | v0.2.0 |
 | Assembly | 5 | NASM, GAS, ARM Assembly, MIPS Assembly, RISC-V Assembly | v1.3.0 |
-| **Total** | **51** | | |
+| **Total** | **50** | | |
 
 ### CLI Commands
 
@@ -204,7 +204,7 @@ Complete feature comparison across versions.
 - **Interpreted**: 24 languages
 - **Compiled**: 22 languages
 - **Assembly**: 5 languages
-- **Total**: 51 languages
+- **Total**: 50 languages
 - **File Extensions**: 60+
 
 ### Commands & Features

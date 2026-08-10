@@ -25,7 +25,6 @@ var handlers = map[types.Language]types.LanguageHandler{
 	types.OCaml:         &OCamlHandler{},
 	types.Elixir:        &ElixirHandler{},
 	types.Erlang:        &ErlangHandler{},
-	types.FSharp:        &FSharpHandler{},
 	types.Kotlin:        &KotlinHandler{},
 	types.Scala:         &ScalaHandler{},
 	types.Groovy:        &GroovyHandler{},

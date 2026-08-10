@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.3.0] - 2026-08-09
 
+### Removed
+- F# language support (dotnet hostfxr issues make it unreliable)
+
 ### Added
 - 21 new languages: Fortran, Pascal, Ada, COBOL, Scheme, Common Lisp, Forth, Prolog, Tcl, Clojure, Gleam, Elm, PureScript, Roc, V, Odin, NASM, GAS, ARM Assembly, MIPS Assembly, RISC-V Assembly
 - Assembly language support (NASM, GAS, ARM, MIPS, RISC-V)

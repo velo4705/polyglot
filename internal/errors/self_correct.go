@@ -176,13 +176,6 @@ func ClassifyError(errStr string, langName string) (bool, string) {
 			return true, fmt.Sprintf("Missing dependency detected. Please ensure '%s' is present in your Erlang path.", pkg)
 		}
 
-	case "F#":
-		re := regexp.MustCompile(`error\s+fs0039:\s+the\s+namespace\s+or\s+module\s+['"]([^'"]+)['"]\s+is\s+not\s+defined`)
-		if matches := re.FindStringSubmatch(errStr); len(matches) > 1 {
-			pkg := matches[1]
-			return true, fmt.Sprintf("Missing dependency detected. To install, run: dotnet add package %s", pkg)
-		}
-
 	case "Perl":
 		re := regexp.MustCompile(`can't\s+locate\s+([^\s]+)\s+in\s+@inc`)
 		if matches := re.FindStringSubmatch(errStr); len(matches) > 1 {

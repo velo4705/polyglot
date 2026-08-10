@@ -8,8 +8,8 @@ import (
 
 func TestAllHandlersRegistered(t *testing.T) {
 	languages := types.AllLanguages()
-	if len(languages) != 51 {
-		t.Fatalf("expected 51 languages, got %d", len(languages))
+	if len(languages) != 50 {
+		t.Fatalf("expected 50 languages, got %d", len(languages))
 	}
 
 	for _, lang := range languages {
@@ -29,7 +29,6 @@ func TestHandlerNames(t *testing.T) {
 		{types.Go, "Go"},
 		{types.JavaScript, "JavaScript"},
 		{types.Cpp, "C++"},
-		{types.FSharp, "F#"},
 		{types.CommonLisp, "Common Lisp"},
 		{types.Nasm, "NASM"},
 	}
@@ -67,7 +66,6 @@ var expectedTypes = map[types.Language]types.LanguageType{
 	types.OCaml:         types.Compiled,
 	types.Elixir:        types.Interpreted,
 	types.Erlang:        types.Compiled,
-	types.FSharp:        types.Interpreted,
 	types.Kotlin:        types.Compiled,
 	types.Scala:         types.Compiled,
 	types.Groovy:        types.Interpreted,

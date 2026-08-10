@@ -35,7 +35,6 @@ const (
 	OCaml
 	Elixir
 	Erlang
-	FSharp
 	Kotlin
 	Scala
 	Groovy
@@ -96,7 +95,6 @@ var languageRegistry = []LanguageInfo{
 	{OCaml, "OCaml", []string{".ml", ".mli"}, Compiled},
 	{Elixir, "Elixir", []string{".ex", ".exs"}, Interpreted},
 	{Erlang, "Erlang", []string{".erl", ".hrl"}, Compiled},
-	{FSharp, "F#", []string{".fs", ".fsx", ".fsi"}, Compiled},
 	{Kotlin, "Kotlin", []string{".kt", ".kts"}, Compiled},
 	{Scala, "Scala", []string{".scala", ".sc"}, Compiled},
 	{Groovy, "Groovy", []string{".groovy", ".gvy"}, Interpreted},

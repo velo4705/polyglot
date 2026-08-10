@@ -337,9 +337,6 @@ func (e *Executor) buildCmd(ctx context.Context, handler types.LanguageHandler, 
 	case "Brainfuck":
 		name = "bf"
 		cmdArgs = append([]string{filename}, args...)
-	case "F#":
-		name = "dotnet"
-		cmdArgs = append([]string{filename}, args...)
 	case "Scheme":
 		name = "guile"
 		cmdArgs = append([]string{filename}, args...)

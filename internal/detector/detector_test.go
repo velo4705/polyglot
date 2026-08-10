@@ -31,7 +31,6 @@ func TestDetectLanguage(t *testing.T) {
 		{"main.ml", types.OCaml},
 		{"main.ex", types.Elixir},
 		{"main.erl", types.Erlang},
-		{"main.fs", types.FSharp},
 		{"main.kt", types.Kotlin},
 		{"main.scala", types.Scala},
 		{"main.groovy", types.Groovy},

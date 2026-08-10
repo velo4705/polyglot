@@ -29,7 +29,6 @@ var executableToLanguage = map[string]string{
 	"ocamlc":  "ocaml",
 	"elixir":  "elixir",
 	"erl":     "erlang",
-	"dotnet":  "fsharp",
 	"kotlin":  "kotlin",
 	"scala":   "scala",
 	"groovy":  "groovy",

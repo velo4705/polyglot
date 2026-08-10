@@ -46,7 +46,6 @@ func checkToolchains(cmd *cobra.Command, args []string) error {
 		"OCaml":           "ocamlc",
 		"Elixir":          "elixir",
 		"Erlang":          "erl",
-		"F#":              "dotnet",
 		"Kotlin":          "kotlin",
 		"Scala":           "scala",
 		"Groovy":          "groovy",

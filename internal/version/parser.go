@@ -220,13 +220,6 @@ var Specs = map[string]VersionSpec{
 			return s
 		},
 	},
-	"F#": {
-		Command: "dotnet",
-		Args:    []string{"--version"},
-		ParseFn: func(output string) string {
-			return strings.TrimSpace(output)
-		},
-	},
 	"Kotlin": {
 		Command: "kotlin",
 		Args:    []string{"-version"},

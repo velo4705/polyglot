@@ -68,7 +68,6 @@ sudo mv polyglot /usr/local/bin/
 | Scala | `.scala` | `scala` | Compiled* |
 | Haskell | `.hs` | `ghc` | Compiled* |
 | OCaml | `.ml` `.mli` | `ocaml` | Compiled* |
-| F# | `.fs` `.fsx` | `fsharp` | Compiled* |
 | TypeScript | `.ts` | `ts-node` | Compiled* |
 | Dart | `.dart` | `dart` | Compiled* |
 | Elixir | `.ex` `.exs` | `elixir` | Interpreted |
@@ -99,7 +98,7 @@ sudo mv polyglot /usr/local/bin/
 | MIPS Assembly | `.mips` | `mips-linux-gnu-gcc` | Compiled |
 | RISC-V Assembly | `.riscv` | `riscv64-linux-gnu-gcc` | Compiled |
 
-**Total: 51 languages supported!**
+**Total: 50 languages supported!**
 
 ## Common Usage
 

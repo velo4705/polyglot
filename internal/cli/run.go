@@ -369,7 +369,6 @@ func getCommandForLanguage(language string) string {
 		"OCaml":           "ocamlc",
 		"Elixir":          "elixir",
 		"Erlang":          "erl",
-		"F#":              "dotnet",
 		"Kotlin":          "kotlin",
 		"Scala":           "scala",
 		"Groovy":          "groovy",
@@ -507,8 +506,6 @@ func getRunCommand(handler types.LanguageHandler, filename string, args []string
 		cmdStr = fmt.Sprintf("julia %s", filename)
 	case "Brainfuck":
 		cmdStr = fmt.Sprintf("bf %s", filename)
-	case "F#":
-		cmdStr = fmt.Sprintf("dotnet %s", filename)
 	case "Scheme":
 		cmdStr = fmt.Sprintf("guile %s", filename)
 	case "Common Lisp":

@@ -7,7 +7,7 @@ Polyglot supports 30 programming languages across interpreted, compiled, and eso
 | Category | Count | Languages |
 |----------|-------|-----------|
 | Interpreted | 16 | Python, JavaScript, Ruby, PHP, Perl, Lua, Shell, Elixir, Erlang, Groovy, R, Julia, Haskell, OCaml, TypeScript, Dart |
-| Compiled | 14 | Go, Java, C, C++, Rust, Zig, Nim, Crystal, D, F#, Kotlin, Scala, Swift |
+| Compiled | 13 | Go, Java, C, C++, Rust, Zig, Nim, Crystal, D, Kotlin, Scala, Swift |
 | Esoteric | 1 | Brainfuck |
 | **Total** | **30** | |
 
@@ -45,7 +45,6 @@ Polyglot supports 30 programming languages across interpreted, compiled, and eso
 | Nim | `.nim` | `nim c` | ✅ |
 | Crystal | `.cr` | `crystal run` | ✅ |
 | D | `.d` | `dmd` | ✅ |
-| F# | `.fs` `.fsx` | `dotnet fsi` | ✅ |
 | Kotlin | `.kt` `.kts` | `kotlinc` + `kotlin` | ✅ |
 | Scala | `.scala` | `scalac` + `scala` | ✅ |
 | Swift | `.swift` | `swift` | ✅ |

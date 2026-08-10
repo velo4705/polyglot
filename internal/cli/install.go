@@ -60,7 +60,6 @@ func installLanguage(cmd *cobra.Command, args []string) error {
 		"fortran":        {"Fortran", "gfortran"},
 		"brainfuck":      {"Brainfuck", "bf"},
 		"bf":             {"Brainfuck", "bf"},
-		"fsharp":         {"F#", "dotnet"},
 		"erlang":         {"Erlang", "erl"},
 		"zig":            {"Zig", "zig"},
 		"nim":            {"Nim", "nim"},

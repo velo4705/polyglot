@@ -13,8 +13,8 @@ polyglot run <any-file>
 
 ### How many languages does it support?
 
-Currently **51 languages**:
-- **Interpreted:** Python, JavaScript, Ruby, PHP, Perl, Lua, Shell, R, Julia, Elixir, Scheme, Common Lisp, Forth, Prolog, Tcl, Clojure, Brainfuck, F#
+Currently **50 languages**:
+- **Interpreted:** Python, JavaScript, Ruby, PHP, Perl, Lua, Shell, R, Julia, Elixir, Scheme, Common Lisp, Forth, Prolog, Tcl, Clojure, Brainfuck
 - **Compiled:** Go, Java, C, C++, Rust, Zig, Nim, Crystal, D, Haskell, OCaml, Erlang, Kotlin, Scala, Swift, Dart, TypeScript, Elm, Gleam, PureScript, Roc, V, Odin, Fortran, Pascal, Ada, COBOL
 - **Assembly:** NASM, GAS, ARM Assembly, MIPS Assembly, RISC-V Assembly
 
@@ -28,7 +28,7 @@ Yes! Polyglot is open source under the MIT License.
 
 ## Installation & Setup
 
-### Do I need to install all 51 language toolchains?
+### Do I need to install all 50 language toolchains?
 
 **Nope,** You only need to install the languages you want to use.
 

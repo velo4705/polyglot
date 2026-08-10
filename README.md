@@ -2,7 +2,7 @@
 
 A universal compiler and interpreter wrapper. Detects language by file extension and runs it with the right toolchain.
 
-Supports **51 languages** — Python, JavaScript, Go, Java, C, C++, Rust, Ruby, PHP, and more.
+Supports **50 languages** — Python, JavaScript, Go, Java, C, C++, Rust, Ruby, PHP, and more.
 Implements Auto-Correction of Syntax errors and Auto-Applying Compilation Flags depending on Code.
 
 ## Install
@@ -63,13 +63,13 @@ polyglot run --args "arg1 arg2" hello.py
 
 **Interpreted:** Python, JavaScript, Ruby, PHP, Perl, Lua, Shell, TypeScript, Dart, Elixir, Erlang, Groovy, R, Julia, Scheme, Common Lisp, Forth, Prolog, Tcl, Clojure, Gleam, PureScript, Roc
 
-**Compiled:** Go, Java, C, C++, Rust, Zig, Nim, Crystal, D, Swift, Kotlin, Scala, Haskell, OCaml, F#, Fortran, Pascal, Ada, COBOL, V, Odin, Elm
+**Compiled:** Go, Java, C, C++, Rust, Zig, Nim, Crystal, D, Swift, Kotlin, Scala, Haskell, OCaml, Fortran, Pascal, Ada, COBOL, V, Odin, Elm
 
 **Assembly:** NASM, GAS, ARM Assembly, MIPS Assembly, RISC-V Assembly
 
 **Esoteric:** Brainfuck
 
-**Total: 51 languages** with 55+ file extensions
+**Total: 50 languages** with 55+ file extensions
 
 ## Configuration
 

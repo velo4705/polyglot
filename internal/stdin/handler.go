@@ -28,7 +28,6 @@ var canonicalExtensions = map[string]string{
 	"OCaml":      ".ml",
 	"Elixir":     ".ex",
 	"Erlang":     ".erl",
-	"F#":         ".fs",
 	"Kotlin":     ".kt",
 	"Scala":      ".scala",
 	"Groovy":     ".groovy",
